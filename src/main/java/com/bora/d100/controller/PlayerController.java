@@ -4,8 +4,11 @@ import com.bora.d100.exception.InvalidTokenException;
 import com.bora.d100.model.Player;
 import com.bora.d100.model.User;
 import com.bora.d100.service.PlayerService;
+import com.bora.d100.service.SheetService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +19,12 @@ import org.springframework.web.bind.annotation.*;
 public class PlayerController
 {
     private final PlayerService playerService;
+    private final SheetService sheetService;
 
-    public PlayerController(PlayerService playerService)
+    public PlayerController(PlayerService playerService, SheetService sheetService)
     {
         this.playerService = playerService;
+        this.sheetService = sheetService;
     }
 
     @GetMapping
@@ -62,5 +67,20 @@ public class PlayerController
         if (user == null) throw new InvalidTokenException("Missing or invalid token");
         playerService.deletePlayer(id, user);
         return ResponseEntity.ok("Player deleted successfully");
+    }
+
+    @GetMapping("/{id}/sheet.html")
+    public ResponseEntity<byte[]> downloadHtmlSheet(@PathVariable Long id) {
+        //bunu kullanacaksan pronoun ve birthplace isimlerinde hata olabilir frontende bak
+        Player p = playerService.getPlayerById(id);
+
+        byte[] bytes = sheetService.generateCharacterHtml(p);
+
+        String fileName = (p.getName() != null ? p.getName() : "character") + "-sheet.html";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.TEXT_HTML)
+                .body(bytes);
     }
 }

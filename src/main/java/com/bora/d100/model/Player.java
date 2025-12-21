@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class Player {
 
@@ -22,10 +21,11 @@ public class Player {
 
     private String player;
     private String name;
-    private String occupation;
-    private int age;
-    private String sex;
     private String birthPlace;
+    private String pronoun;
+    private String occupation;
+    private String residence;
+    private int age;
     private int totalXP;
 
     private int usedXP;
@@ -229,7 +229,7 @@ public class Player {
                 throw new IllegalArgumentException("Unknown skill: " + skill);
         }
     }
-    
+
     public void calculateMPAndHP () {
         this.setHP((this.getCON()+this.getSIZ())/10);
         this.setMP(this.getPOW()/5);
@@ -257,15 +257,16 @@ public class Player {
             this.setDamageBonus("-2");
         }
     }
-    
+
     public void setValuesFromAnother(Player player) {
         // ID ve user hariç her şeyi overwrite edelim
         this.setPlayer(player.getPlayer());
         this.setName(player.getName());
-        this.setOccupation(player.getOccupation());
-        this.setAge(player.getAge());
-        this.setSex(player.getSex());
         this.setBirthPlace(player.getBirthPlace());
+        this.setPronoun(player.getPronoun());
+        this.setOccupation(player.getOccupation());
+        this.setResidence(player.getResidence());
+        this.setAge(player.getAge());
 
         this.setTotalXP(player.getTotalXP());
         this.setUsedXP(player.getUsedXP());
