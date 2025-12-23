@@ -53,7 +53,7 @@ public class SheetService {
         m.put("HP", String.valueOf(p.getHP()));
         m.put("MP", String.valueOf(p.getMP()));
         m.put("MOVE", String.valueOf(p.getMOVE()));
-        m.put("BUILD", String.valueOf(p.getBUILD()));
+        m.put("BUILD", String.valueOf(p.getBuild()));
         m.put("DAMAGE_BONUS", safe(p.getDamageBonus()));
 
         // Ana özellikler

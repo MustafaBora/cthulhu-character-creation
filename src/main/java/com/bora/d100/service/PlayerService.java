@@ -26,10 +26,11 @@ public class PlayerService {
 
     public List<Player> getAllPlayers()
     {
-        return playerRepository.findAll()
+        List<Player> players = playerRepository.findAll()
                 .stream()
                 //.map(playerMapper::toResponseDto)
                 .toList();
+        return players;
     }
 
     public Player getPlayerById(Long playerId)

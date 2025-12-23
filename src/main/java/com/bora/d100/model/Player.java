@@ -2,7 +2,6 @@ package com.bora.d100.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -30,7 +29,7 @@ public class Player {
 
     private int usedXP;
     private int remainingXP;
-    private int BUILD;
+    private int Build;
     private String damageBonus;
     private int MP;
     private int HP;
@@ -50,6 +49,7 @@ public class Player {
     private int SAN;
     private int SIZ;
     private int STR;
+    private int Armor;
 
     private int Accounting;
     private int Anthropology;
@@ -237,114 +237,88 @@ public class Player {
 
     public void calculateBuildAndDB () {
         if(this.getSIZ() + this.getSTR() > 164) {
-            this.setBUILD(2);
+            this.setBuild(2);
             this.setDamageBonus("+1D6");
         }
         else if(this.getSIZ() + this.getSTR() > 124 && this.getSIZ() + this.getSTR() < 165) {
-            this.setBUILD(1);
+            this.setBuild(1);
             this.setDamageBonus("+1D3");
         }
         else if(this.getSIZ() + this.getSTR() > 84 && this.getSIZ() + this.getSTR() < 125) {
-            this.setBUILD(0);
+            this.setBuild(0);
             this.setDamageBonus("0");
         }
         else if(this.getSIZ() + this.getSTR() > 64 && this.getSIZ() + this.getSTR() < 85) {
-            this.setBUILD(-1);
+            this.setBuild(-1);
             this.setDamageBonus("-1");
         }
         else if(this.getSIZ() + this.getSTR() > 2 && this.getSIZ() + this.getSTR() < 65) {
-            this.setBUILD(-2);
+            this.setBuild(-2);
             this.setDamageBonus("-2");
         }
     }
 
-    public void setValuesFromAnother(Player player) {
-        // ID ve user hariç her şeyi overwrite edelim
-        this.setPlayer(player.getPlayer());
-        this.setName(player.getName());
-        this.setBirthPlace(player.getBirthPlace());
-        this.setPronoun(player.getPronoun());
-        this.setOccupation(player.getOccupation());
-        this.setResidence(player.getResidence());
-        this.setAge(player.getAge());
+    public void setValuesFromAnother(Player other) {
+        if (other == null) {
+            throw new IllegalArgumentException("Player to copy from cannot be null");
+        }
 
-        this.setTotalXP(player.getTotalXP());
-        this.setUsedXP(player.getUsedXP());
-        this.setRemainingXP(player.getRemainingXP());
-        this.setBUILD(player.getBUILD());
-        this.setDamageBonus(player.getDamageBonus());
-        this.setMP(player.getMP());
-        this.setHP(player.getHP());
-        this.setMOVE(player.getMOVE());
+        // --- Basics (ID + user intentionally excluded) ---
+        this.avatar = other.getAvatar();
+        this.player = other.getPlayer();
+        this.name = other.getName();
+        this.birthPlace = other.getBirthPlace();
+        this.pronoun = other.getPronoun();
+        this.occupation = other.getOccupation();
+        this.residence = other.getResidence();
+        this.age = other.getAge();
 
-        this.setAPP(player.getAPP());
-        this.setBONUS(player.getBONUS());
-        this.setBRV(player.getBRV());
-        this.setCON(player.getCON());
-        this.setDEX(player.getDEX());
-        this.setEDU(player.getEDU());
-        this.setINT(player.getINT());
-        this.setLUCK(player.getLUCK());
-        this.setPER(player.getPER());
-        this.setPOW(player.getPOW());
-        this.setREP(player.getREP());
-        this.setSAN(player.getSAN());
-        this.setSIZ(player.getSIZ());
-        this.setSTR(player.getSTR());
+        // --- Progress / derived-ish fields ---
+        this.totalXP = other.getTotalXP();
+        this.usedXP = other.getUsedXP();
+        this.remainingXP = other.getRemainingXP();
+        this.Build = other.getBuild();
+        this.damageBonus = other.getDamageBonus();
+        this.MP = other.getMP();
+        this.HP = other.getHP();
+        this.MOVE = other.getMOVE();
 
-        // skill set’leri de aynı şekilde:
-        this.setAccounting(player.getAccounting());
-        this.setAnthropology(player.getAnthropology());
-        this.setAppraise(player.getAppraise());
-        this.setArcheology(player.getArcheology());
-        this.setArtCraft(player.getArtCraft());
-        this.setArtCraft2(player.getArtCraft2());
-        this.setCharm(player.getCharm());
-        this.setClimb(player.getClimb());
-        this.setCreditRating(player.getCreditRating());
-        this.setCthulhuMythos(player.getCthulhuMythos());
-        this.setDisguise(player.getDisguise());
-        this.setDodge(player.getDodge());
-        this.setDriveAuto(player.getDriveAuto());
-        this.setElectricalRepair(player.getElectricalRepair());
-        this.setFastTalk(player.getFastTalk());
-        this.setFightingBrawl(player.getFightingBrawl());
-        this.setFightingOther(player.getFightingOther());
-        this.setFirearmsHandgun(player.getFirearmsHandgun());
-        this.setFirearmsOther(player.getFirearmsOther());
-        this.setFirearmsOther2(player.getFirearmsOther2());
-        this.setFirearmsRifleShotgun(player.getFirearmsRifleShotgun());
-        this.setFirstAid(player.getFirstAid());
-        this.setHistory(player.getHistory());
-        this.setIntimidate(player.getIntimidate());
-        this.setJump(player.getJump());
-        this.setLanguageOther1(player.getLanguageOther1());
-        this.setLanguageOther2(player.getLanguageOther2());
-        this.setLanguageOther3(player.getLanguageOther3());
-        this.setLanguageOwn(player.getLanguageOwn());
-        this.setLaw(player.getLaw());
-        this.setLibraryUse(player.getLibraryUse());
-        this.setListen(player.getListen());
-        this.setLocksmith(player.getLocksmith());
-        this.setMechanicalRepair(player.getMechanicalRepair());
-        this.setMedicine(player.getMedicine());
-        this.setNaturalWorld(player.getNaturalWorld());
-        this.setNavigate(player.getNavigate());
-        this.setOccult(player.getOccult());
-        this.setPersuade(player.getPersuade());
-        this.setPilot(player.getPilot());
-        this.setPsychoanalysis(player.getPsychoanalysis());
-        this.setPsychology(player.getPsychology());
-        this.setRide(player.getRide());
-        this.setScience(player.getScience());
-        this.setScienceOther(player.getScienceOther());
-        this.setScienceOther2(player.getScienceOther2());
-        this.setSleightOfHand(player.getSleightOfHand());
-        this.setSpotHidden(player.getSpotHidden());
-        this.setStealth(player.getStealth());
-        this.setSurvival(player.getSurvival());
-        this.setSwim(player.getSwim());
-        this.setThrow(player.getThrow());
-        this.setTrack(player.getTrack());
+        // --- Characteristics ---
+        this.APP = other.getAPP();
+        this.BONUS = other.getBONUS();
+        this.BRV = other.getBRV();
+        this.CON = other.getCON();
+        this.DEX = other.getDEX();
+        this.EDU = other.getEDU();
+        this.INT = other.getINT();
+        this.LUCK = other.getLUCK();
+        this.PER = other.getPER();
+        this.POW = other.getPOW();
+        this.REP = other.getREP();
+        this.SAN = other.getSAN();
+        this.SIZ = other.getSIZ();
+        this.STR = other.getSTR();
+        this.Armor = other.getArmor();
+
+        // --- Skills (single source of truth) ---
+        for (String skill : SKILLS) {
+            this.setSkill(skill, other.getSkill(skill));
+        }
+
+        // İstersen türetilenleri her zaman yeniden hesapla (MP/HP, BUILD/DB gibi):
+        this.calculateMPAndHP();
+        this.calculateBuildAndDB();
     }
+
+    private static final String[] SKILLS = {
+            "Accounting","Anthropology","Appraise","Archeology","ArtCraft","ArtCraft2",
+            "Charm","Climb","CreditRating","CthulhuMythos","Disguise","Dodge","DriveAuto",
+            "ElectricalRepair","FastTalk","FightingBrawl","FightingOther","FirearmsHandgun",
+            "FirearmsOther","FirearmsOther2","FirearmsRifleShotgun","FirstAid","History",
+            "Intimidate","Jump","LanguageOther1","LanguageOther2","LanguageOther3","LanguageOwn",
+            "Law","LibraryUse","Listen","Locksmith","MechanicalRepair","Medicine","NaturalWorld",
+            "Navigate","Occult","Persuade","Pilot","Psychoanalysis","Psychology","Ride","Science",
+            "ScienceOther","ScienceOther2","SleightOfHand","SpotHidden","Stealth","Survival",
+            "Swim","Throw","Track"
+    };
 }
