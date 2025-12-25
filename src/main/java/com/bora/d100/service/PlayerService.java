@@ -16,12 +16,14 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final PlayerMapper playerMapper;
     private final CostService costService;
+    private final CostServiceByUsage costServiceByUsage;
 
-    public PlayerService(PlayerRepository playerRepository, PlayerMapper playerMapper, CostService costService)
+    public PlayerService(PlayerRepository playerRepository, PlayerMapper playerMapper, CostService costService, CostServiceByUsage costServiceByUsage)
     {
         this.playerRepository = playerRepository;
         this.playerMapper = playerMapper;
         this.costService = costService;
+        this.costServiceByUsage = costServiceByUsage;
     }
 
     public List<Player> getAllPlayers()
@@ -47,7 +49,8 @@ public class PlayerService {
     {
 //        Player player = playerMapper.toEntity(dto);
         player.setUser(user);
-        costService.calculateXP(player);
+//        costService.calculateXP(player);
+        costServiceByUsage.calculateXP(player);
         player.calculateBuildAndDB();
         player.calculateMPAndHP();
         Player saved = playerRepository.save(player);
@@ -65,7 +68,8 @@ public class PlayerService {
 
         existing.setValuesFromAnother(incoming);
 
-        costService.calculateXP(existing);
+//        costService.calculateXP(existing);
+        costServiceByUsage.calculateXP(existing);
         existing.calculateBuildAndDB();
         existing.calculateMPAndHP();
 
