@@ -65,12 +65,12 @@ public class RulesSpec {
      */
     public static class PenaltyRules {
         private List<Integer> thresholds;      // [40, 50, 60, 70, 80]
-        private List<Integer> multipliers;     // [2, 3, 4, 5, 6]
+        private List<Double> multipliers;      // [1.5, 2.0, 3.0, 4.0, 6.0]
 
         public PenaltyRules() {
         }
 
-        public PenaltyRules(List<Integer> thresholds, List<Integer> multipliers) {
+        public PenaltyRules(List<Integer> thresholds, List<Double> multipliers) {
             this.thresholds = thresholds;
             this.multipliers = multipliers;
         }
@@ -83,21 +83,21 @@ public class RulesSpec {
             this.thresholds = thresholds;
         }
 
-        public List<Integer> getMultipliers() {
+        public List<Double> getMultipliers() {
             return multipliers;
         }
 
-        public void setMultipliers(List<Integer> multipliers) {
+        public void setMultipliers(List<Double> multipliers) {
             this.multipliers = multipliers;
         }
 
         /**
          * Get the multiplier for a given value based on threshold levels.
-         * Returns base multiplier of 1 if value is below first threshold.
+         * Returns base multiplier of 1.0 if value is below first threshold.
          */
-        public int getMultiplierForValue(int value) {
+        public double getMultiplierForValue(int value) {
             if (thresholds == null || multipliers == null || thresholds.isEmpty()) {
-                return 1;
+                return 1.0;
             }
 
             for (int i = 0; i < thresholds.size(); i++) {
@@ -107,7 +107,7 @@ public class RulesSpec {
                     }
                 }
             }
-            return 1; // Default multiplier if below first threshold
+            return 1.0; // Default multiplier if below first threshold
         }
     }
 }

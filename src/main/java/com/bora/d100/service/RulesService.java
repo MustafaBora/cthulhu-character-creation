@@ -112,7 +112,7 @@ public class RulesService {
                 Map.entry("BRV", 120),
                 Map.entry("STA", 120),
                 Map.entry("AGI", 220),
-                Map.entry("EDU", 20),
+                Map.entry("EDU", 40),
                 Map.entry("INT", 60),
                 Map.entry("LUCK", 180),
                 Map.entry("PER", 320),
@@ -181,9 +181,9 @@ public class RulesService {
         
         // Multi-level penalty system: 5 threshold levels
         // Thresholds: 40, 50, 60, 70, 80
-        // Multipliers: 2x, 3x, 4x, 5x, 6x
+        // Multipliers: 1.5x, 2x, 3x, 4x, 6x
         List<Integer> penaltyThresholds = Arrays.asList(40, 50, 60, 70, 80);
-        List<Integer> penaltyMultipliers = Arrays.asList(2, 3, 4, 5, 6);
+        List<Double> penaltyMultipliers = Arrays.asList(1.5, 2.0, 3.0, 4.0, 6.0);
         RulesSpec.PenaltyRules penalties = new RulesSpec.PenaltyRules(penaltyThresholds, penaltyMultipliers);
         
         return new RulesSpec(base, usage, penalties);

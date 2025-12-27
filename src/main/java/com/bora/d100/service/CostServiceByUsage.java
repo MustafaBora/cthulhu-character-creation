@@ -25,7 +25,7 @@ public class CostServiceByUsage {
      * Belirli bir seviyeye ulaşmak için gereken toplam puanı hesaplar.
      * 
      * currentValue'dan targetValue'ye gitmek için kaç puan harcaması gerekir.
-     * Penalti sistemi multi-level threshold tabanlıdır: 40, 50, 60, 70, 80 seviyeleri 2x, 3x, 4x, 5x, 6x çarpan alır.
+     * Penalti sistemi multi-level threshold tabanlıdır: 40, 50, 60, 70, 80 seviyeleri 1.5x, 2x, 3x, 4x, 6x çarpan alır.
      */
     public int getCostBetween(String skill, int currentValue, int targetValue) {
         int usage = rulesService.getUsageCost(skill);
@@ -36,19 +36,19 @@ public class CostServiceByUsage {
             return 0;
         }
 
-        int totalCost = 0;
+        double totalCost = 0;
         int current = currentValue;
 
         // Multi-level penalty calculation
         // Calculate cost for each threshold segment
         if (penalties != null && penalties.getThresholds() != null) {
             java.util.List<Integer> thresholds = penalties.getThresholds();
-            java.util.List<Integer> multipliers = penalties.getMultipliers();
+            java.util.List<Double> multipliers = penalties.getMultipliers();
             
             // Process each threshold level
             for (int i = 0; i < thresholds.size(); i++) {
                 int threshold = thresholds.get(i);
-                int multiplier = multipliers.get(i);
+                double multiplier = multipliers.get(i);
                 
                 if (current >= threshold) {
                     // Skip this threshold, already passed it
@@ -66,16 +66,16 @@ public class CostServiceByUsage {
                     
                     int diff = end - current;
                     if (diff > 0) {
-                        int currentMultiplier = (current >= threshold) ? multiplier : 1;
+                        double currentMultiplier = (current >= threshold) ? multiplier : 1.0;
                         if (current < threshold && end > threshold) {
                             // Cost spans from before threshold to after - split it
                             int diffBefore = threshold - current;
-                            totalCost += diffBefore * usage * 1; // Before threshold: 1x
+                            totalCost += diffBefore * usage * 1.0; // Before threshold: 1x
                             totalCost += (end - threshold) * usage * multiplier;
                             current = end;
                         } else if (end <= threshold) {
                             // Entirely before threshold
-                            totalCost += diff * usage * 1;
+                            totalCost += diff * usage * 1.0;
                             current = end;
                         } else {
                             // Entirely at or above threshold
@@ -88,13 +88,13 @@ public class CostServiceByUsage {
             
             // Cost for anything above the last threshold
             if (current < targetValue) {
-                int lastMultiplier = multipliers.get(multipliers.size() - 1);
+                double lastMultiplier = multipliers.get(multipliers.size() - 1);
                 int diff = targetValue - current;
                 totalCost += diff * usage * lastMultiplier;
             }
         }
 
-        return totalCost;
+        return (int) Math.round(totalCost);
     }
 
     /**
