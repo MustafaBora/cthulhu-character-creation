@@ -9,77 +9,79 @@ import java.util.Map;
 @Service
 public class CostServiceByUsage {
 
-    private static final Map<String, Integer> BASE = Map.ofEntries(
+    private static final Map<String, Integer> BASE = Map.<String, Integer>ofEntries(
             Map.entry("totalXP", 0),
             Map.entry("usedXP", 0),
             Map.entry("remainingXP", 0),
 
-            Map.entry("APP" , 30),
-            Map.entry("BONUS" , 0),
-            Map.entry("BRV" , 45),
-            Map.entry("CON" , 30),
-            Map.entry("DEX" , 35),
-            Map.entry("EDU" , 20),
-            Map.entry("INT" , 30),
-            Map.entry("LUCK" , 35),
-            Map.entry("PER" , 0),
-            Map.entry("POW" , 30),
-            Map.entry("REP" , 1),
-            Map.entry("SAN" , 45),
-            Map.entry("SIZ" , 31),
-            Map.entry("STR" , 25),
+            Map.entry("APP", 30),
+            Map.entry("BONUS", 0),
+            Map.entry("BRV", 45),
+            Map.entry("STA", 30),
+            Map.entry("AGI", 35),
+            Map.entry("EDU", 20),
+            Map.entry("INT", 30),
+            Map.entry("LUCK", 35),
+            Map.entry("PER", 0),
+            Map.entry("POW", 30),
+            Map.entry("REP", 1),
+            Map.entry("SAN", 45),
+            Map.entry("SIZ", 31),
+            Map.entry("STR", 25),
+            Map.entry("ARMOR", 0),
+            Map.entry("RES", 0),
 
-            Map.entry("Accounting" , 7),
-            Map.entry("Anthropology" , 6),
-            Map.entry("Appraise" , 8),
-            Map.entry("Archeology" , 3),
-            Map.entry("Art Craft" , 15),
-            Map.entry("Art Craft 2" , 14),
-            Map.entry("Charm" , 20),
-            Map.entry("Climb" , 20),
-            Map.entry("Credit Rating" ,5 ),
-            Map.entry("Cthulhu Mythos" , 0),
-            Map.entry("Disguise" ,5 ),
-            Map.entry("Dodge" , 20),
-            Map.entry("Drive Auto" , 10),
-            Map.entry("Electrical Repair" , 15),
-            Map.entry("Fast Talk" , 14),
-            Map.entry("Fighting Brawl" , 30),
-            Map.entry("Fighting Other" , 30),
-            Map.entry("Firearms Handgun" , 30),
-            Map.entry("Firearms Other" , 30),
-            Map.entry("Firearms Rifle Shotgun" , 30),
-            Map.entry("First Aid" , 20),
-            Map.entry("History" , 10),
-            Map.entry("Intimidate" , 15),
-            Map.entry("Jump" , 20),
-            Map.entry("Language Other 1" , 20),
-            Map.entry("Language Other 2" , 0),
-            Map.entry("Language Other 3" , 0),
-            Map.entry("Language Own" , 50),
-            Map.entry("Law" , 5),
-            Map.entry("Library Use" , 20),
-            Map.entry("Listen" , 30),
-            Map.entry("Locksmith" , 10),
-            Map.entry("Mechanical Repair" , 15),
-            Map.entry("Medicine" , 4),
-            Map.entry("Natural World" , 15),
-            Map.entry("Navigate" , 15),
-            Map.entry("Occult" , 4),
-            Map.entry("Persuade" , 15),
-            Map.entry("Pilot" , 1),
-            Map.entry("Psychoanalysis" , 2),
-            Map.entry("Psychology" , 10),
-            Map.entry("Ride" , 10),
-            Map.entry("Science" , 10),
-            Map.entry("Science Other" , 21),
-            Map.entry("Science Other 2" , 20),
-            Map.entry("Sleight Of Hand" , 10),
-            Map.entry("Spot Hidden" , 15),
-            Map.entry("Stealth" , 20),
-            Map.entry("Survival" , 11),
-            Map.entry("Swim" , 22),
-            Map.entry("Throw" , 20),
+            Map.entry("Accounting", 7),
+            Map.entry("Anthropology", 6),
+            Map.entry("Appraise", 8),
+            Map.entry("Archeology", 3),
+            Map.entry("Art Craft", 15),
+            Map.entry("Art Craft 2", 14),
+            Map.entry("Charm", 20),
+            Map.entry("Climb", 20),
+            Map.entry("Credit Rating", 5),
+            Map.entry("Cthulhu Mythos", 0),
+            Map.entry("Disguise", 5),
+            Map.entry("Dodge", 20),
+            Map.entry("Drive Auto", 10),
+            Map.entry("Electrical Repair", 15),
+            Map.entry("Fast Talk", 14),
+            Map.entry("Fighting Brawl", 30),
+            Map.entry("Fighting Other", 30),
+            Map.entry("Firearms Handgun", 30),
+            Map.entry("Firearms Other", 30),
+            Map.entry("Firearms Rifle Shotgun", 30),
+            Map.entry("First Aid", 20),
+            Map.entry("History", 10),
+            Map.entry("Intimidate", 15),
+            Map.entry("Jump", 20),
+            Map.entry("Language Other 1", 20),
+            Map.entry("Language Other 2", 0),
+            Map.entry("Language Other 3", 0),
+            Map.entry("Language Own", 50),
+            Map.entry("Law", 5),
+            Map.entry("Library Use", 20),
+            Map.entry("Listen", 30),
+            Map.entry("Locksmith", 10),
+            Map.entry("Mechanical Repair", 15),
+            Map.entry("Medicine", 4),
+            Map.entry("Natural World", 15),
+            Map.entry("Navigate", 15),
+            Map.entry("Occult", 4),
+            Map.entry("Persuade", 15),
+            Map.entry("Pilot", 1),
+            Map.entry("Psychoanalysis", 2),
+            Map.entry("Psychology", 10),
+            Map.entry("Ride", 10),
+            Map.entry("Science", 10),
+            Map.entry("Science Other", 21),
+            Map.entry("Science Other 2", 20),
+            Map.entry("Sleight Of Hand", 10),
+            Map.entry("Spot Hidden", 15),
+            Map.entry("Stealth", 20),
+            Map.entry("Survival", 11),
+            Map.entry("Swim", 22),
+            Map.entry("Throw", 20),
             Map.entry("Track", 10)
     );
 
@@ -88,7 +90,7 @@ public class CostServiceByUsage {
      * Örneğin: APP = 3 demek, APP'yi 1 yükseltmek için 3 puan harcamanız gerekir.
      * Bu, CostService'deki MULT değerlerinin tersidir.
      */
-    private static final Map<String, Integer> USAGE = Map.ofEntries(
+    private static final Map<String, Integer> USAGE = Map.<String, Integer>ofEntries(
             Map.entry("totalXP", 0),
             Map.entry("usedXP", 0),
             Map.entry("remainingXP", 0),
@@ -97,8 +99,8 @@ public class CostServiceByUsage {
             Map.entry("APP", 60),
             Map.entry("BONUS", 120),
             Map.entry("BRV", 120),
-            Map.entry("CON", 120),
-            Map.entry("DEX", 220),
+            Map.entry("STA", 120),
+            Map.entry("AGI", 220),
             Map.entry("EDU", 20),
             Map.entry("INT", 60),
             Map.entry("LUCK", 180),
@@ -108,6 +110,8 @@ public class CostServiceByUsage {
             Map.entry("SAN", 160),
             Map.entry("SIZ", 40),
             Map.entry("STR", 100),
+            Map.entry("ARMOR", 7000),
+            Map.entry("RES", 7000),
 
             // Beceriler (Skills)
             Map.entry("Accounting", 20),
@@ -229,8 +233,8 @@ public class CostServiceByUsage {
         int APP = getCostBetween("APP", BASE.get("APP"), player.getAPP());
         int BONUS = getCostBetween("BONUS", BASE.get("BONUS"), player.getBONUS());
         int BRV = getCostBetween("BRV", BASE.get("BRV"), player.getBRV());
-        int CON = getCostBetween("CON", BASE.get("CON"), player.getCON());
-        int DEX = getCostBetween("DEX", BASE.get("DEX"), player.getDEX());
+        int CON = getCostBetween("STA", BASE.get("STA"), player.getCON());
+        int DEX = getCostBetween("AGI", BASE.get("AGI"), player.getDEX());
         int EDU = getCostBetween("EDU", BASE.get("EDU"), player.getEDU());
         int INT = getCostBetween("INT", BASE.get("INT"), player.getINT());
         int LUCK = getCostBetween("LUCK", BASE.get("LUCK"), player.getLUCK());
@@ -240,6 +244,8 @@ public class CostServiceByUsage {
         int SAN = getCostBetween("SAN", BASE.get("SAN"), player.getSAN());
         int SIZ = getCostBetween("SIZ", BASE.get("SIZ"), player.getSIZ());
         int STR = getCostBetween("STR", BASE.get("STR"), player.getSTR());
+        int ARMOR = getCostBetween("ARMOR", BASE.get("ARMOR"), player.getARMOR());
+        int RES = getCostBetween("RES", BASE.get("RES"), player.getRES());
 
         // Skills
         int Accounting = getCostBetween("Accounting", BASE.get("Accounting"), player.getAccounting());
@@ -297,7 +303,7 @@ public class CostServiceByUsage {
 
         // TOPLAM (FirearmsOther2 eklendi)
         int totalCost =
-                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + PER + POW + REP + SAN + SIZ + STR +
+                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + PER + POW + REP + SAN + SIZ + STR + ARMOR + RES +
                         Accounting + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Charm + Climb +
                         CreditRating + CthulhuMythos + Disguise + Dodge + DriveAuto + ElectricalRepair + FastTalk +
                         FightingBrawl + FightingOther + FirearmsHandgun + FirearmsOther + FirearmsRifle +

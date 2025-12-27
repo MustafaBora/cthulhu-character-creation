@@ -60,8 +60,8 @@ public class SheetService {
         m.put("APP", String.valueOf(p.getAPP()));
         m.put("BONUS", String.valueOf(p.getBONUS()));
         m.put("BRV", String.valueOf(p.getBRV()));
-        m.put("CON", String.valueOf(p.getCON()));
-        m.put("DEX", String.valueOf(p.getDEX()));
+        m.put("STA", String.valueOf(p.getCON()));
+        m.put("AGI", String.valueOf(p.getDEX()));
         m.put("EDU", String.valueOf(p.getEDU()));
         m.put("INT", String.valueOf(p.getINT()));
         m.put("LUCK", String.valueOf(p.getLUCK()));

@@ -49,7 +49,8 @@ public class Player {
     private int SAN;
     private int SIZ;
     private int STR;
-    private int Armor;
+    private int ARMOR;
+    private int RES;
 
     private int Accounting;
     private int Anthropology;
@@ -111,6 +112,8 @@ public class Player {
 
     public int getSkill(String skill) {
         switch (skill) {
+            case "ARMOR": return ARMOR;
+            case "RES": return RES;
             case "Accounting": return Accounting;
             case "Anthropology": return Anthropology;
             case "Appraise": return Appraise;
@@ -170,6 +173,8 @@ public class Player {
 
     public void setSkill(String skill, int value) {
         switch (skill) {
+            case "ARMOR": ARMOR = value; break;
+            case "RES": RES = value; break;
             case "Accounting": Accounting = value; break;
             case "Anthropology": Anthropology = value; break;
             case "Appraise": Appraise = value; break;
@@ -295,7 +300,8 @@ public class Player {
         this.SAN = other.getSAN();
         this.SIZ = other.getSIZ();
         this.STR = other.getSTR();
-        this.Armor = other.getArmor();
+        this.ARMOR = other.getARMOR();
+        this.RES = other.getRES();
 
         // --- Skills (single source of truth) ---
         for (String skill : SKILLS) {
