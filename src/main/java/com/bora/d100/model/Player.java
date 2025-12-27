@@ -1,7 +1,16 @@
 package com.bora.d100.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -98,7 +107,7 @@ public class Player {
     private int ScienceOther;
     private int ScienceOther2;
     private int SleightOfHand;
-    private int SpotHidden;
+    private int SPOT;
     private int Stealth;
     private int Survival;
     private int Swim;
@@ -175,7 +184,7 @@ public class Player {
             case "ScienceOther": return ScienceOther;
             case "ScienceOther2": return ScienceOther2;
             case "SleightOfHand": return SleightOfHand;
-            case "SpotHidden": return SpotHidden;
+            case "SPOT": return SPOT;
             case "Stealth": return Stealth;
             case "Survival": return Survival;
             case "Swim": return Swim;
@@ -251,7 +260,7 @@ public class Player {
             case "ScienceOther": ScienceOther = value; break;
             case "ScienceOther2": ScienceOther2 = value; break;
             case "SleightOfHand": SleightOfHand = value; break;
-            case "SpotHidden": SpotHidden = value; break;
+            case "SPOT": SPOT = value; break;
             case "Stealth": Stealth = value; break;
             case "Survival": Survival = value; break;
             case "Swim": Swim = value; break;
@@ -338,12 +347,12 @@ public class Player {
             "Intimidate","Jump","LanguageOther1","LanguageOther2","LanguageOther3","LanguageOwn",
             "Law","LibraryUse","Listen","Locksmith","MechanicalRepair","Medicine","NaturalWorld",
             "Navigate","Occult","Persuade","Pilot","Psychoanalysis","Psychology","Ride","Science",
-            "ScienceOther","ScienceOther2","SleightOfHand","SpotHidden","Stealth","Survival",
+            "ScienceOther","ScienceOther2","SleightOfHand","Stealth","Survival",
             "Swim","Throw","Track"
     };
 
         private static final String[] CHARACTERISTICS = {
             "APP","BONUS","BRV","CON","DEX","EDU","INT","LUCK","PER","POW",
-            "REP","SAN","SIZ","STR","ARMOR","RES"
+            "REP","SAN","SIZ","STR","ARMOR","RES","SPOT"
         };
 }

@@ -1,10 +1,11 @@
 package com.bora.d100.service;
 
-import com.bora.d100.exception.XPCalculationMismatchException;
-import com.bora.d100.model.Player;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import com.bora.d100.exception.XPCalculationMismatchException;
+import com.bora.d100.model.Player;
 
 @Service
 public class CostServiceByUsage {
@@ -77,7 +78,7 @@ public class CostServiceByUsage {
             Map.entry("Science Other", 21),
             Map.entry("Science Other 2", 20),
             Map.entry("Sleight Of Hand", 10),
-            Map.entry("Spot Hidden", 15),
+            Map.entry("SPOT", 15),
             Map.entry("Stealth", 20),
             Map.entry("Survival", 11),
             Map.entry("Swim", 22),
@@ -110,8 +111,9 @@ public class CostServiceByUsage {
             Map.entry("SAN", 160),
             Map.entry("SIZ", 40),
             Map.entry("STR", 100),
-            Map.entry("ARMOR", 7000),
-            Map.entry("RES", 7000),
+            Map.entry("ARMOR", 15000),
+            Map.entry("RES", 15000),
+            Map.entry("SPOT", 260),
 
             // Beceriler (Skills)
             Map.entry("Accounting", 20),
@@ -160,7 +162,6 @@ public class CostServiceByUsage {
             Map.entry("Science Other", 20),
             Map.entry("Science Other 2", 20),
             Map.entry("Sleight Of Hand", 100),
-            Map.entry("Spot Hidden", 260),
             Map.entry("Stealth", 140),
             Map.entry("Survival", 20),
             Map.entry("Swim", 20),
@@ -294,7 +295,7 @@ public class CostServiceByUsage {
         int ScienceOther = getCostBetween("Science Other", BASE.get("Science Other"), player.getScienceOther());
         int ScienceOther2 = getCostBetween("Science Other 2", BASE.get("Science Other 2"), player.getScienceOther2());
         int SleightOfHand = getCostBetween("Sleight Of Hand", BASE.get("Sleight Of Hand"), player.getSleightOfHand());
-        int SpotHidden = getCostBetween("Spot Hidden", BASE.get("Spot Hidden"), player.getSpotHidden());
+        int SPOT = getCostBetween("SPOT", BASE.get("SPOT"), player.getSPOT());
         int Stealth = getCostBetween("Stealth", BASE.get("Stealth"), player.getStealth());
         int Survival = getCostBetween("Survival", BASE.get("Survival"), player.getSurvival());
         int Swim = getCostBetween("Swim", BASE.get("Swim"), player.getSwim());
@@ -303,14 +304,14 @@ public class CostServiceByUsage {
 
         // TOPLAM (FirearmsOther2 eklendi)
         int totalCost =
-                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + PER + POW + REP + SAN + SIZ + STR + ARMOR + RES +
+                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + PER + POW + REP + SAN + SIZ + STR + ARMOR + RES + SPOT +
                         Accounting + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Charm + Climb +
                         CreditRating + CthulhuMythos + Disguise + Dodge + DriveAuto + ElectricalRepair + FastTalk +
                         FightingBrawl + FightingOther + FirearmsHandgun + FirearmsOther + FirearmsRifle +
                         FirstAid + History + Intimidate + Jump + LanguageOther1 + LanguageOther2 + LanguageOther3 +
                         LanguageOwn + Law + LibraryUse + Listen + Locksmith + MechanicalRepair + Medicine +
                         NaturalWorld + Navigate + Occult + Persuade + Pilot + Psychoanalysis + Psychology + Ride +
-                        Science + ScienceOther + ScienceOther2 + SleightOfHand + SpotHidden + Stealth + Survival +
+                        Science + ScienceOther + ScienceOther2 + SleightOfHand + Stealth + Survival +
                         Swim + ThrowSkill + Track;
         if(player.getUsedXP() != totalCost) throw new XPCalculationMismatchException(totalCost, player.getUsedXP());
         player.setUsedXP(totalCost);

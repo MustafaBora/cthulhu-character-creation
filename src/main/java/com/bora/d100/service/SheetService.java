@@ -119,7 +119,7 @@ public class SheetService {
         m.put("SCIENCE_OTHER", String.valueOf(p.getScienceOther()));
         m.put("SCIENCE_OTHER2", String.valueOf(p.getScienceOther2()));
         m.put("SLEIGHT_OF_HAND", String.valueOf(p.getSleightOfHand()));
-        m.put("SPOT_HIDDEN", String.valueOf(p.getSpotHidden()));
+        m.put("SPOT", String.valueOf(p.getSPOT()));
         m.put("STEALTH", String.valueOf(p.getStealth()));
         m.put("SURVIVAL", String.valueOf(p.getSurvival()));
         m.put("SWIM", String.valueOf(p.getSwim()));

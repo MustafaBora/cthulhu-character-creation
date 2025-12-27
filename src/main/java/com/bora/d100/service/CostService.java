@@ -33,8 +33,8 @@ public class CostService {
             Map.entry("SAN", 45),
             Map.entry("SIZ", 31),
             Map.entry("STR", 25),
-            Map.entry("armor", 0),
-            Map.entry("resilience", 0),
+            Map.entry("ARMOR", 0),
+            Map.entry("RES", 0),
 
             Map.entry("Accounting", 7),
             Map.entry("Anthropology", 6),
@@ -82,7 +82,7 @@ public class CostService {
             Map.entry("Science Other", 21),
             Map.entry("Science Other 2", 20),
             Map.entry("Sleight Of Hand", 10),
-            Map.entry("Spot Hidden", 15),
+            Map.entry("SPOT", 15),
             Map.entry("Stealth", 20),
             Map.entry("Survival", 11),
             Map.entry("Swim", 22),
@@ -158,7 +158,7 @@ public class CostService {
             Map.entry("Science Other", 44),
             Map.entry("Science Other 2", 44),
             Map.entry("Sleight Of Hand", 13),
-            Map.entry("Spot Hidden", 5),
+            Map.entry("SPOT", 5),
             Map.entry("Stealth", 9),
             Map.entry("Survival", 50),
             Map.entry("Swim", 45),
@@ -275,7 +275,7 @@ public class CostService {
         int ScienceOther = getCostFromBase("Science Other", player.getScienceOther());
         int ScienceOther2 = getCostFromBase("Science Other 2", player.getScienceOther2());
         int SleightOfHand = getCostFromBase("Sleight Of Hand", player.getSleightOfHand());
-        int SpotHidden = getCostFromBase("Spot Hidden", player.getSpotHidden());
+        int SPOT = getCostFromBase("SPOT", player.getSPOT());
         int Stealth = getCostFromBase("Stealth", player.getStealth());
         int Survival = getCostFromBase("Survival", player.getSurvival());
         int Swim = getCostFromBase("Swim", player.getSwim());
@@ -291,7 +291,7 @@ public class CostService {
                         FirstAid + History + Intimidate + Jump + LanguageOther1 + LanguageOther2 + LanguageOther3 +
                         LanguageOwn + Law + LibraryUse + Listen + Locksmith + MechanicalRepair + Medicine +
                         NaturalWorld + Navigate + Occult + Persuade + Pilot + Psychoanalysis + Psychology + Ride +
-                        Science + ScienceOther + ScienceOther2 + SleightOfHand + SpotHidden + Stealth + Survival +
+                        Science + ScienceOther + ScienceOther2 + SleightOfHand + SPOT + Stealth + Survival +
                         Swim + ThrowSkill + Track;
         player.setUsedXP(totalCost);
         player.setRemainingXP(player.getTotalXP() - totalCost);
