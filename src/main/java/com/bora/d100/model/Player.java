@@ -112,6 +112,21 @@ public class Player {
 
     public int getSkill(String skill) {
         switch (skill) {
+            // Characteristics
+            case "APP": return APP;
+            case "BONUS": return BONUS;
+            case "BRV": return BRV;
+            case "CON": return CON;
+            case "DEX": return DEX;
+            case "EDU": return EDU;
+            case "INT": return INT;
+            case "LUCK": return LUCK;
+            case "PER": return PER;
+            case "POW": return POW;
+            case "REP": return REP;
+            case "SAN": return SAN;
+            case "SIZ": return SIZ;
+            case "STR": return STR;
             case "ARMOR": return ARMOR;
             case "RES": return RES;
             case "Accounting": return Accounting;
@@ -173,6 +188,21 @@ public class Player {
 
     public void setSkill(String skill, int value) {
         switch (skill) {
+            // Characteristics
+            case "APP": APP = value; break;
+            case "BONUS": BONUS = value; break;
+            case "BRV": BRV = value; break;
+            case "CON": CON = value; break;
+            case "DEX": DEX = value; break;
+            case "EDU": EDU = value; break;
+            case "INT": INT = value; break;
+            case "LUCK": LUCK = value; break;
+            case "PER": PER = value; break;
+            case "POW": POW = value; break;
+            case "REP": REP = value; break;
+            case "SAN": SAN = value; break;
+            case "SIZ": SIZ = value; break;
+            case "STR": STR = value; break;
             case "ARMOR": ARMOR = value; break;
             case "RES": RES = value; break;
             case "Accounting": Accounting = value; break;
@@ -285,23 +315,10 @@ public class Player {
         this.HP = other.getHP();
         this.MOVE = other.getMOVE();
 
-        // --- Characteristics ---
-        this.APP = other.getAPP();
-        this.BONUS = other.getBONUS();
-        this.BRV = other.getBRV();
-        this.CON = other.getCON();
-        this.DEX = other.getDEX();
-        this.EDU = other.getEDU();
-        this.INT = other.getINT();
-        this.LUCK = other.getLUCK();
-        this.PER = other.getPER();
-        this.POW = other.getPOW();
-        this.REP = other.getREP();
-        this.SAN = other.getSAN();
-        this.SIZ = other.getSIZ();
-        this.STR = other.getSTR();
-        this.ARMOR = other.getARMOR();
-        this.RES = other.getRES();
+        // --- Characteristics copied generically ---
+        for (String c : CHARACTERISTICS) {
+            this.setSkill(c, other.getSkill(c));
+        }
 
         // --- Skills (single source of truth) ---
         for (String skill : SKILLS) {
@@ -313,7 +330,7 @@ public class Player {
         this.calculateBuildAndDB();
     }
 
-    private static final String[] SKILLS = {
+        private static final String[] SKILLS = {
             "Accounting","Anthropology","Appraise","Archeology","ArtCraft","ArtCraft2",
             "Charm","Climb","CreditRating","CthulhuMythos","Disguise","Dodge","DriveAuto",
             "ElectricalRepair","FastTalk","FightingBrawl","FightingOther","FirearmsHandgun",
@@ -324,4 +341,9 @@ public class Player {
             "ScienceOther","ScienceOther2","SleightOfHand","SpotHidden","Stealth","Survival",
             "Swim","Throw","Track"
     };
+
+        private static final String[] CHARACTERISTICS = {
+            "APP","BONUS","BRV","CON","DEX","EDU","INT","LUCK","PER","POW",
+            "REP","SAN","SIZ","STR","ARMOR","RES"
+        };
 }
