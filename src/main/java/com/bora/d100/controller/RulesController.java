@@ -1,9 +1,12 @@
 package com.bora.d100.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.bora.d100.dto.RulesSpec;
 import com.bora.d100.service.RulesService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * API endpoints for game rules specification.

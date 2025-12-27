@@ -1,9 +1,12 @@
 package com.bora.d100.service;
 
-import com.bora.d100.dto.RulesSpec;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import com.bora.d100.dto.RulesSpec;
 
 /**
  * Service to manage and serve the rules specification.
@@ -176,7 +179,12 @@ public class RulesService {
                 Map.entry("Track", 40)
         );
         
-        RulesSpec.PenaltyRules penalties = new RulesSpec.PenaltyRules(50, 75, 2, 3);
+        // Multi-level penalty system: 5 threshold levels
+        // Thresholds: 40, 50, 60, 70, 80
+        // Multipliers: 2x, 3x, 4x, 5x, 6x
+        List<Integer> penaltyThresholds = Arrays.asList(40, 50, 60, 70, 80);
+        List<Integer> penaltyMultipliers = Arrays.asList(2, 3, 4, 5, 6);
+        RulesSpec.PenaltyRules penalties = new RulesSpec.PenaltyRules(penaltyThresholds, penaltyMultipliers);
         
         return new RulesSpec(base, usage, penalties);
     }

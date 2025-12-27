@@ -1,5 +1,6 @@
 package com.bora.d100.dto;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -8,25 +9,26 @@ import java.util.Map;
  * to ensure consistent calculations without code duplication.
  */
 public class RulesSpec {
-    
+
     /**
      * Base characteristics and skills initial values (starting points).
      */
     private Map<String, Integer> base;
-    
+
     /**
      * Usage costs - how many XP points are needed to increase a characteristic or skill by 1.
      * Example: "APP": 60 means it costs 60 XP to increase APP by 1 point.
      */
     private Map<String, Integer> usage;
-    
+
     /**
      * Penalty thresholds and multipliers for difficulty scaling.
      */
     private PenaltyRules penaltyRules;
-    
-    public RulesSpec() {}
-    
+
+    public RulesSpec() {
+    }
+
     public RulesSpec(Map<String, Integer> base, Map<String, Integer> usage, PenaltyRules penaltyRules) {
         this.base = base;
         this.usage = usage;
@@ -56,55 +58,56 @@ public class RulesSpec {
     public void setPenaltyRules(PenaltyRules penaltyRules) {
         this.penaltyRules = penaltyRules;
     }
-    
+
     /**
      * Nested class for penalty threshold rules.
+     * Supports multiple penalty levels with thresholds and multipliers.
      */
     public static class PenaltyRules {
-        private int firstThreshold;   // 50
-        private int secondThreshold;  // 75
-        private int firstPenaltyMult; // 2x
-        private int secondPenaltyMult; // 3x
-        
-        public PenaltyRules() {}
-        
-        public PenaltyRules(int firstThreshold, int secondThreshold, int firstPenaltyMult, int secondPenaltyMult) {
-            this.firstThreshold = firstThreshold;
-            this.secondThreshold = secondThreshold;
-            this.firstPenaltyMult = firstPenaltyMult;
-            this.secondPenaltyMult = secondPenaltyMult;
+        private List<Integer> thresholds;      // [40, 50, 60, 70, 80]
+        private List<Integer> multipliers;     // [2, 3, 4, 5, 6]
+
+        public PenaltyRules() {
         }
 
-        public int getFirstThreshold() {
-            return firstThreshold;
+        public PenaltyRules(List<Integer> thresholds, List<Integer> multipliers) {
+            this.thresholds = thresholds;
+            this.multipliers = multipliers;
         }
 
-        public void setFirstThreshold(int firstThreshold) {
-            this.firstThreshold = firstThreshold;
+        public List<Integer> getThresholds() {
+            return thresholds;
         }
 
-        public int getSecondThreshold() {
-            return secondThreshold;
+        public void setThresholds(List<Integer> thresholds) {
+            this.thresholds = thresholds;
         }
 
-        public void setSecondThreshold(int secondThreshold) {
-            this.secondThreshold = secondThreshold;
+        public List<Integer> getMultipliers() {
+            return multipliers;
         }
 
-        public int getFirstPenaltyMult() {
-            return firstPenaltyMult;
+        public void setMultipliers(List<Integer> multipliers) {
+            this.multipliers = multipliers;
         }
 
-        public void setFirstPenaltyMult(int firstPenaltyMult) {
-            this.firstPenaltyMult = firstPenaltyMult;
-        }
+        /**
+         * Get the multiplier for a given value based on threshold levels.
+         * Returns base multiplier of 1 if value is below first threshold.
+         */
+        public int getMultiplierForValue(int value) {
+            if (thresholds == null || multipliers == null || thresholds.isEmpty()) {
+                return 1;
+            }
 
-        public int getSecondPenaltyMult() {
-            return secondPenaltyMult;
-        }
-
-        public void setSecondPenaltyMult(int secondPenaltyMult) {
-            this.secondPenaltyMult = secondPenaltyMult;
+            for (int i = 0; i < thresholds.size(); i++) {
+                if (value >= thresholds.get(i)) {
+                    if (i == thresholds.size() - 1 || value < thresholds.get(i + 1)) {
+                        return multipliers.get(i);
+                    }
+                }
+            }
+            return 1; // Default multiplier if below first threshold
         }
     }
 }

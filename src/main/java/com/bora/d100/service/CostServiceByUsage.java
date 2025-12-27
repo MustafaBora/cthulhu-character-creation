@@ -25,7 +25,7 @@ public class CostServiceByUsage {
      * Belirli bir seviyeye ulaşmak için gereken toplam puanı hesaplar.
      * 
      * currentValue'dan targetValue'ye gitmek için kaç puan harcaması gerekir.
-     * Penalti sistemi CostService ile aynıdır.
+     * Penalti sistemi multi-level threshold tabanlıdır: 40, 50, 60, 70, 80 seviyeleri 2x, 3x, 4x, 5x, 6x çarpan alır.
      */
     public int getCostBetween(String skill, int currentValue, int targetValue) {
         int usage = rulesService.getUsageCost(skill);
@@ -39,26 +39,59 @@ public class CostServiceByUsage {
         int totalCost = 0;
         int current = currentValue;
 
-        // Parça 1: Mevcut seviye → firstThreshold arası
-        if (current < penalties.getFirstThreshold()) {
-            int end = Math.min(targetValue, penalties.getFirstThreshold());
-            int diff = end - current;
-            totalCost += diff * usage;
-            current = end;
-        }
-
-        // Parça 2: firstThreshold → secondThreshold arası (2x daha pahalı)
-        if (current < penalties.getSecondThreshold() && current >= penalties.getFirstThreshold()) {
-            int end = Math.min(targetValue, penalties.getSecondThreshold());
-            int diff = end - current;
-            totalCost += diff * usage * penalties.getFirstPenaltyMult();
-            current = end;
-        }
-
-        // Parça 3: secondThreshold+ arası (3x daha pahalı)
-        if (current < targetValue) {
-            int diff = targetValue - current;
-            totalCost += diff * usage * penalties.getSecondPenaltyMult();
+        // Multi-level penalty calculation
+        // Calculate cost for each threshold segment
+        if (penalties != null && penalties.getThresholds() != null) {
+            java.util.List<Integer> thresholds = penalties.getThresholds();
+            java.util.List<Integer> multipliers = penalties.getMultipliers();
+            
+            // Process each threshold level
+            for (int i = 0; i < thresholds.size(); i++) {
+                int threshold = thresholds.get(i);
+                int multiplier = multipliers.get(i);
+                
+                if (current >= threshold) {
+                    // Skip this threshold, already passed it
+                    continue;
+                }
+                
+                if (current < threshold && current < targetValue) {
+                    // Calculate cost from current to this threshold (or to target if target is before this threshold)
+                    int nextThreshold = (i + 1 < thresholds.size()) ? thresholds.get(i + 1) : Integer.MAX_VALUE;
+                    int end = Math.min(targetValue, nextThreshold);
+                    
+                    if (current < threshold) {
+                        end = Math.min(end, threshold);
+                    }
+                    
+                    int diff = end - current;
+                    if (diff > 0) {
+                        int currentMultiplier = (current >= threshold) ? multiplier : 1;
+                        if (current < threshold && end > threshold) {
+                            // Cost spans from before threshold to after - split it
+                            int diffBefore = threshold - current;
+                            totalCost += diffBefore * usage * 1; // Before threshold: 1x
+                            totalCost += (end - threshold) * usage * multiplier;
+                            current = end;
+                        } else if (end <= threshold) {
+                            // Entirely before threshold
+                            totalCost += diff * usage * 1;
+                            current = end;
+                        } else {
+                            // Entirely at or above threshold
+                            totalCost += diff * usage * multiplier;
+                            current = end;
+                        }
+                    }
+                }
+            }
+            
+            // Cost for anything above the last threshold
+            if (current < targetValue) {
+                int lastMultiplier = multipliers.get(multipliers.size() - 1);
+                int diff = targetValue - current;
+                totalCost += diff * usage * lastMultiplier;
+            }
         }
 
         return totalCost;
