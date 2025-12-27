@@ -92,7 +92,6 @@ public class SheetService {
         m.put("FIGHTING_OTHER", String.valueOf(p.getFightingOther()));
         m.put("FIREARMS_HANDGUN", String.valueOf(p.getFirearmsHandgun()));
         m.put("FIREARMS_OTHER", String.valueOf(p.getFirearmsOther()));
-        m.put("FIREARMS_OTHER2", String.valueOf(p.getFirearmsOther2()));
         m.put("FIREARMS_RIFLE_SHOTGUN", String.valueOf(p.getFirearmsRifleShotgun()));
         m.put("FIRST_AID", String.valueOf(p.getFirstAid()));
         m.put("HISTORY", String.valueOf(p.getHistory()));

@@ -1,6 +1,7 @@
 package com.bora.d100.service;
 
 import com.bora.d100.exception.PlayerNotFoundException;
+import com.bora.d100.exception.XPCalculationMismatchException;
 import com.bora.d100.mapper.PlayerMapper;
 import com.bora.d100.model.Player;
 import com.bora.d100.model.Role;
@@ -45,8 +46,7 @@ public class PlayerService {
 
 
 
-    public Player/*ResponseDTO*/ createPlayer(Player/*RequestDTO dto,*/ player, User user)
-    {
+    public Player/*ResponseDTO*/ createPlayer(Player/*RequestDTO dto,*/ player, User user) throws XPCalculationMismatchException {
 //        Player player = playerMapper.toEntity(dto);
         player.setUser(user);
 //        costService.calculateXP(player);

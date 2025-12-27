@@ -70,7 +70,6 @@ public class Player {
     private int FightingOther;
     private int FirearmsHandgun;
     private int FirearmsOther;
-    private int FirearmsOther2;
     private int FirearmsRifleShotgun;
     private int FirstAid;
     private int History;
@@ -131,7 +130,6 @@ public class Player {
             case "FightingOther": return FightingOther;
             case "FirearmsHandgun": return FirearmsHandgun;
             case "FirearmsOther": return FirearmsOther;
-            case "FirearmsOther2": return FirearmsOther2;
             case "FirearmsRifleShotgun": return FirearmsRifleShotgun;
             case "FirstAid": return FirstAid;
             case "History": return History;
@@ -191,7 +189,6 @@ public class Player {
             case "FightingOther": FightingOther = value; break;
             case "FirearmsHandgun": FirearmsHandgun = value; break;
             case "FirearmsOther": FirearmsOther = value; break;
-            case "FirearmsOther2": FirearmsOther2 = value; break;
             case "FirearmsRifleShotgun": FirearmsRifleShotgun = value; break;
             case "FirstAid": FirstAid = value; break;
             case "History": History = value; break;
@@ -314,7 +311,7 @@ public class Player {
             "Accounting","Anthropology","Appraise","Archeology","ArtCraft","ArtCraft2",
             "Charm","Climb","CreditRating","CthulhuMythos","Disguise","Dodge","DriveAuto",
             "ElectricalRepair","FastTalk","FightingBrawl","FightingOther","FirearmsHandgun",
-            "FirearmsOther","FirearmsOther2","FirearmsRifleShotgun","FirstAid","History",
+            "FirearmsOther","FirearmsRifleShotgun","FirstAid","History",
             "Intimidate","Jump","LanguageOther1","LanguageOther2","LanguageOther3","LanguageOwn",
             "Law","LibraryUse","Listen","Locksmith","MechanicalRepair","Medicine","NaturalWorld",
             "Navigate","Occult","Persuade","Pilot","Psychoanalysis","Psychology","Ride","Science",
