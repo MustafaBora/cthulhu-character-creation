@@ -1,0 +1,213 @@
+package com.bora.d100.service;
+
+import com.bora.d100.dto.RulesSpec;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+
+/**
+ * Service to manage and serve the rules specification.
+ * This is a single source of truth for all game rules.
+ */
+@Service
+public class RulesService {
+    
+    private final RulesSpec rulesSpec;
+    
+    public RulesService() {
+        this.rulesSpec = initializeRulesSpec();
+    }
+    
+    /**
+     * Initialize the complete rules specification with all characteristics and skills.
+     */
+    private RulesSpec initializeRulesSpec() {
+        Map<String, Integer> base = Map.<String, Integer>ofEntries(
+                Map.entry("totalXP", 100000),
+                Map.entry("usedXP", 0),
+                Map.entry("remainingXP", 0),
+
+                Map.entry("APP", 30),
+                Map.entry("BONUS", 0),
+                Map.entry("BRV", 45),
+                Map.entry("STA", 30),
+                Map.entry("AGI", 35),
+                Map.entry("EDU", 20),
+                Map.entry("INT", 30),
+                Map.entry("LUCK", 35),
+                Map.entry("PER", 10),
+                Map.entry("POW", 30),
+                Map.entry("REP", 1),
+                Map.entry("SAN", 45),
+                Map.entry("SIZ", 31),
+                Map.entry("STR", 25),
+                Map.entry("ARMOR", 0),
+                Map.entry("RES", 0),
+
+                Map.entry("Accounting", 7),
+                Map.entry("Anthropology", 6),
+                Map.entry("Appraise", 8),
+                Map.entry("Archeology", 3),
+                Map.entry("Art Craft", 15),
+                Map.entry("Art Craft 2", 14),
+                Map.entry("Charm", 20),
+                Map.entry("Climb", 20),
+                Map.entry("Credit Rating", 5),
+                Map.entry("Cthulhu Mythos", 0),
+                Map.entry("Disguise", 5),
+                Map.entry("Dodge", 20),
+                Map.entry("Drive Auto", 10),
+                Map.entry("Electrical Repair", 15),
+                Map.entry("Fast Talk", 14),
+                Map.entry("Fighting Brawl", 30),
+                Map.entry("Fighting Other", 30),
+                Map.entry("Firearms Handgun", 30),
+                Map.entry("Firearms Other", 30),
+                Map.entry("Firearms Rifle Shotgun", 30),
+                Map.entry("First Aid", 20),
+                Map.entry("History", 10),
+                Map.entry("Intimidate", 15),
+                Map.entry("Jump", 20),
+                Map.entry("Language Other 1", 20),
+                Map.entry("Language Other 2", 0),
+                Map.entry("Language Other 3", 0),
+                Map.entry("Language Own", 50),
+                Map.entry("Law", 5),
+                Map.entry("Library Use", 20),
+                Map.entry("Listen", 30),
+                Map.entry("Locksmith", 10),
+                Map.entry("Mechanical Repair", 15),
+                Map.entry("Medicine", 4),
+                Map.entry("Natural World", 15),
+                Map.entry("Navigate", 15),
+                Map.entry("Occult", 4),
+                Map.entry("Persuade", 15),
+                Map.entry("Pilot", 1),
+                Map.entry("Psychoanalysis", 2),
+                Map.entry("Psychology", 10),
+                Map.entry("Ride", 10),
+                Map.entry("Science", 10),
+                Map.entry("Science Other", 21),
+                Map.entry("Science Other 2", 20),
+                Map.entry("Sleight Of Hand", 10),
+                Map.entry("SPOT", 15),
+                Map.entry("Stealth", 20),
+                Map.entry("Survival", 11),
+                Map.entry("Swim", 22),
+                Map.entry("Throw", 20),
+                Map.entry("Track", 10)
+        );
+        
+        Map<String, Integer> usage = Map.<String, Integer>ofEntries(
+                Map.entry("totalXP", 0),
+                Map.entry("usedXP", 0),
+                Map.entry("remainingXP", 0),
+
+                // Characteristics
+                Map.entry("APP", 60),
+                Map.entry("BONUS", 120),
+                Map.entry("BRV", 120),
+                Map.entry("STA", 120),
+                Map.entry("AGI", 220),
+                Map.entry("EDU", 20),
+                Map.entry("INT", 60),
+                Map.entry("LUCK", 180),
+                Map.entry("PER", 320),
+                Map.entry("POW", 140),
+                Map.entry("REP", 100),
+                Map.entry("SAN", 160),
+                Map.entry("SIZ", 100),
+                Map.entry("STR", 100),
+                Map.entry("ARMOR", 15000),
+                Map.entry("RES", 15000),
+                Map.entry("SPOT", 260),
+
+                // Skills
+                Map.entry("Accounting", 20),
+                Map.entry("Anthropology", 20),
+                Map.entry("Appraise", 20),
+                Map.entry("Archeology", 20),
+                Map.entry("Art Craft", 20),
+                Map.entry("Art Craft 2", 20),
+                Map.entry("Charm", 120),
+                Map.entry("Climb", 60),
+                Map.entry("Credit Rating", 120),
+                Map.entry("Cthulhu Mythos", 160),
+                Map.entry("Disguise", 40),
+                Map.entry("Dodge", 180),
+                Map.entry("Drive Auto", 80),
+                Map.entry("Electrical Repair", 40),
+                Map.entry("Fast Talk", 120),
+                Map.entry("Fighting Brawl", 160),
+                Map.entry("Fighting Other", 160),
+                Map.entry("Firearms Handgun", 160),
+                Map.entry("Firearms Other", 140),
+                Map.entry("Firearms Rifle Shotgun", 140),
+                Map.entry("First Aid", 100),
+                Map.entry("History", 60),
+                Map.entry("Intimidate", 100),
+                Map.entry("Jump", 80),
+                Map.entry("Language Other 1", 40),
+                Map.entry("Language Other 2", 20),
+                Map.entry("Language Other 3", 20),
+                Map.entry("Language Own", 20),
+                Map.entry("Law", 40),
+                Map.entry("Library Use", 160),
+                Map.entry("Listen", 160),
+                Map.entry("Locksmith", 120),
+                Map.entry("Mechanical Repair", 40),
+                Map.entry("Medicine", 40),
+                Map.entry("Natural World", 60),
+                Map.entry("Navigate", 40),
+                Map.entry("Occult", 60),
+                Map.entry("Persuade", 180),
+                Map.entry("Pilot", 20),
+                Map.entry("Psychoanalysis", 20),
+                Map.entry("Psychology", 120),
+                Map.entry("Ride", 80),
+                Map.entry("Science", 40),
+                Map.entry("Science Other", 20),
+                Map.entry("Science Other 2", 20),
+                Map.entry("Sleight Of Hand", 100),
+                Map.entry("Stealth", 140),
+                Map.entry("Survival", 20),
+                Map.entry("Swim", 20),
+                Map.entry("Throw", 100),
+                Map.entry("Track", 40)
+        );
+        
+        RulesSpec.PenaltyRules penalties = new RulesSpec.PenaltyRules(50, 75, 2, 3);
+        
+        return new RulesSpec(base, usage, penalties);
+    }
+    
+    /**
+     * Get the complete rules specification.
+     * This is used by the frontend to perform client-side calculations consistently.
+     */
+    public RulesSpec getRulesSpec() {
+        return rulesSpec;
+    }
+    
+    /**
+     * Get base value for a specific characteristic or skill.
+     */
+    public int getBaseValue(String key) {
+        return rulesSpec.getBase().getOrDefault(key, 0);
+    }
+    
+    /**
+     * Get usage cost for a specific characteristic or skill.
+     * Usage cost = how many XP points are needed to increase by 1.
+     */
+    public int getUsageCost(String key) {
+        return rulesSpec.getUsage().getOrDefault(key, 0);
+    }
+    
+    /**
+     * Get the penalty rules configuration.
+     */
+    public RulesSpec.PenaltyRules getPenaltyRules() {
+        return rulesSpec.getPenaltyRules();
+    }
+}

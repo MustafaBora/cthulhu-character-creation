@@ -1,17 +1,28 @@
 package com.bora.d100.controller;
 
-import com.bora.d100.exception.InvalidTokenException;
-import com.bora.d100.model.Player;
-import com.bora.d100.model.User;
-import com.bora.d100.service.PlayerService;
-import com.bora.d100.service.SheetService;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.bora.d100.dto.RulesSpec;
+import com.bora.d100.exception.InvalidTokenException;
+import com.bora.d100.model.Player;
+import com.bora.d100.model.User;
+import com.bora.d100.service.PlayerService;
+import com.bora.d100.service.RulesService;
+import com.bora.d100.service.SheetService;
+
+import jakarta.validation.Valid;
 
 
 @RestController
@@ -20,11 +31,13 @@ public class PlayerController
 {
     private final PlayerService playerService;
     private final SheetService sheetService;
+    private final RulesService rulesService;
 
-    public PlayerController(PlayerService playerService, SheetService sheetService)
+    public PlayerController(PlayerService playerService, SheetService sheetService, RulesService rulesService)
     {
         this.playerService = playerService;
         this.sheetService = sheetService;
+        this.rulesService = rulesService;
     }
 
     @GetMapping
@@ -67,6 +80,16 @@ public class PlayerController
         if (user == null) throw new InvalidTokenException("Missing or invalid token");
         playerService.deletePlayer(id, user);
         return ResponseEntity.ok("Player deleted successfully");
+    }
+
+    /**
+     * GET /players/rules
+     * Serves the rules specification (JSON) to the frontend.
+     * Frontend loads this to drive calculations consistently with backend.
+     */
+    @GetMapping("/rules")
+    public ResponseEntity<RulesSpec> getRulesSpec() {
+        return ResponseEntity.ok(rulesService.getRulesSpec());
     }
 
     @GetMapping("/{id}/sheet.html")
