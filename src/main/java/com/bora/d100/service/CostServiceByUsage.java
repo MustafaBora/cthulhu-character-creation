@@ -7,9 +7,9 @@ import com.bora.d100.exception.XPCalculationMismatchException;
 import com.bora.d100.model.Player;
 
 /**
- * Cost calculation service based on usage rules.
+ * Cost calculation service based on cost rules.
  * Uses RulesService to load all calculation parameters from a single source of truth.
- * USAGE: 1 yükseltme için kaç puan harcaması gerektiğini gösterir.
+ * COST: 1 yükseltme için kaç puan harcaması gerektiğini gösterir.
  * Örneğin: APP = 60 demek, APP'yi 1 yükseltmek için 60 puan harcamanız gerekir.
  */
 @Service
@@ -28,11 +28,11 @@ public class CostServiceByUsage {
      * Penalti sistemi multi-level threshold tabanlıdır: 40, 50, 60, 70, 80 seviyeleri 1.5x, 2x, 3x, 4x, 6x çarpan alır.
      */
     public int getCostBetween(String skill, int currentValue, int targetValue) {
-        int usage = rulesService.getUsageCost(skill);
+        int costPerPoint = rulesService.getCost(skill);
         RulesSpec.PenaltyRules penalties = rulesService.getPenaltyRules();
 
         // Hiç iyileştirme yoksa maliyet sıfır
-        if (targetValue <= currentValue || usage == 0) {
+        if (targetValue <= currentValue || costPerPoint == 0) {
             return 0;
         }
 
@@ -57,7 +57,8 @@ public class CostServiceByUsage {
                 
                 if (current < threshold && current < targetValue) {
                     // Calculate cost from current to this threshold (or to target if target is before this threshold)
-                    int nextThreshold = (i + 1 < thresholds.size()) ? thresholds.get(i + 1) : Integer.MAX_VALUE;
+                    Integer nextThresholdObj = (i + 1 < thresholds.size()) ? thresholds.get(i + 1) : null;
+                    int nextThreshold = (nextThresholdObj != null) ? nextThresholdObj : Integer.MAX_VALUE;
                     int end = Math.min(targetValue, nextThreshold);
                     
                     if (current < threshold) {
@@ -66,20 +67,19 @@ public class CostServiceByUsage {
                     
                     int diff = end - current;
                     if (diff > 0) {
-                        double currentMultiplier = (current >= threshold) ? multiplier : 1.0;
                         if (current < threshold && end > threshold) {
                             // Cost spans from before threshold to after - split it
                             int diffBefore = threshold - current;
-                            totalCost += diffBefore * usage * 1.0; // Before threshold: 1x
-                            totalCost += (end - threshold) * usage * multiplier;
+                            totalCost += diffBefore * costPerPoint * 1.0; // Before threshold: 1x
+                            totalCost += (end - threshold) * costPerPoint * multiplier;
                             current = end;
                         } else if (end <= threshold) {
                             // Entirely before threshold
-                            totalCost += diff * usage * 1.0;
+                            totalCost += diff * costPerPoint * 1.0;
                             current = end;
                         } else {
                             // Entirely at or above threshold
-                            totalCost += diff * usage * multiplier;
+                            totalCost += diff * costPerPoint * multiplier;
                             current = end;
                         }
                     }
@@ -90,7 +90,7 @@ public class CostServiceByUsage {
             if (current < targetValue) {
                 double lastMultiplier = multipliers.get(multipliers.size() - 1);
                 int diff = targetValue - current;
-                totalCost += diff * usage * lastMultiplier;
+                totalCost += diff * costPerPoint * lastMultiplier;
             }
         }
 
@@ -121,9 +121,9 @@ public class CostServiceByUsage {
         int EDU = getCostBetween("EDU", rulesService.getBaseValue("EDU"), player.getEDU());
         int INT = getCostBetween("INT", rulesService.getBaseValue("INT"), player.getINT());
         int LUCK = getCostBetween("LUCK", rulesService.getBaseValue("LUCK"), player.getLUCK());
-        int PER = getCostBetween("PER", rulesService.getBaseValue("PER"), player.getPER());
-        int POW = getCostBetween("POW", rulesService.getBaseValue("POW"), player.getPOW());
-        int REP = getCostBetween("REP", rulesService.getBaseValue("REP"), player.getREP());
+        int SENSE = getCostBetween("SENSE", rulesService.getBaseValue("SENSE"), player.getSENSE());
+        int WILL = getCostBetween("WILL", rulesService.getBaseValue("WILL"), player.getWILL());
+        int STATUS = getCostBetween("STATUS", rulesService.getBaseValue("STATUS"), player.getSTATUS());
         int SAN = getCostBetween("SAN", rulesService.getBaseValue("SAN"), player.getSAN());
         int SIZ = getCostBetween("SIZ", rulesService.getBaseValue("SIZ"), player.getSIZ());
         int STR = getCostBetween("STR", rulesService.getBaseValue("STR"), player.getSTR());
@@ -183,10 +183,13 @@ public class CostServiceByUsage {
         int Swim = getCostBetween("Swim", rulesService.getBaseValue("Swim"), player.getSwim());
         int ThrowSkill = getCostBetween("Throw", rulesService.getBaseValue("Throw"), player.getThrow());
         int Track = getCostBetween("Track", rulesService.getBaseValue("Track"), player.getTrack());
+        int Other1 = getCostBetween("Other1", rulesService.getBaseValue("Other1"), player.getOther1());
+        int Other2 = getCostBetween("Other2", rulesService.getBaseValue("Other2"), player.getOther2());
+        int Other3 = getCostBetween("Other3", rulesService.getBaseValue("Other3"), player.getOther3());
 
-        // TOPLAM
+        // TOPLAM - SPOT is a characteristic, not a skill
         int totalCost =
-                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + PER + POW + REP + SAN + SIZ + STR + ARMOR + RES + SPOT +
+                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + SENSE + WILL + STATUS + SAN + SIZ + STR + ARMOR + RES + SPOT +
                         Accounting + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Charm + Climb +
                         CreditRating + CthulhuMythos + Disguise + Dodge + DriveAuto + ElectricalRepair + FastTalk +
                         FightingBrawl + FightingOther + FirearmsHandgun + FirearmsOther + FirearmsRifle +
@@ -194,7 +197,7 @@ public class CostServiceByUsage {
                         LanguageOwn + Law + LibraryUse + Listen + Locksmith + MechanicalRepair + Medicine +
                         NaturalWorld + Navigate + Occult + Persuade + Pilot + Psychoanalysis + Psychology + Ride +
                         Science + ScienceOther + ScienceOther2 + SleightOfHand + Stealth + Survival +
-                        Swim + ThrowSkill + Track;
+                        Swim + ThrowSkill + Track + Other1 + Other2 + Other3;
         
         if(player.getUsedXP() != totalCost) {
             throw new XPCalculationMismatchException(totalCost, player.getUsedXP());
@@ -202,6 +205,14 @@ public class CostServiceByUsage {
         
         player.setUsedXP(totalCost);
         player.setRemainingXP(player.getTotalXP() - totalCost);
+        
+        // Calculate and set player level based on used XP
+        RulesSpec.LevelRules levelRules = rulesService.getLevelRules();
+        if (levelRules != null) {
+            int level = levelRules.calculateLevel(totalCost);
+            player.setLevel(level);
+        }
+        
         return player;
     }
 }

@@ -66,9 +66,9 @@ public class SheetService {
         m.put("EDU", String.valueOf(p.getEDU()));
         m.put("INT", String.valueOf(p.getINT()));
         m.put("LUCK", String.valueOf(p.getLUCK()));
-        m.put("PER", String.valueOf(p.getPER()));
-        m.put("POW", String.valueOf(p.getPOW()));
-        m.put("REP", String.valueOf(p.getREP()));
+        m.put("SENSE", String.valueOf(p.getSENSE()));
+        m.put("WILL", String.valueOf(p.getWILL()));
+        m.put("STATUS", String.valueOf(p.getSTATUS()));
         m.put("SAN", String.valueOf(p.getSAN()));
         m.put("SIZ", String.valueOf(p.getSIZ()));
         m.put("STR", String.valueOf(p.getSTR()));

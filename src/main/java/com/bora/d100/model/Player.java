@@ -38,6 +38,7 @@ public class Player {
 
     private int usedXP;
     private int remainingXP;
+    private int level;
     private int Build;
     private String damageBonus;
     private int MP;
@@ -52,9 +53,9 @@ public class Player {
     private int EDU;
     private int INT;
     private int LUCK;
-    private int PER;
-    private int POW;
-    private int REP;
+    private int SENSE;
+    private int WILL;
+    private int STATUS;
     private int SAN;
     private int SIZ;
     private int STR;
@@ -113,6 +114,9 @@ public class Player {
     private int Swim;
     private int Throw;
     private int Track;
+    private int Other1;
+    private int Other2;
+    private int Other3;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
@@ -130,9 +134,9 @@ public class Player {
             case "EDU": return EDU;
             case "INT": return INT;
             case "LUCK": return LUCK;
-            case "PER": return PER;
-            case "POW": return POW;
-            case "REP": return REP;
+            case "SENSE": return SENSE;
+            case "WILL": return WILL;
+            case "STATUS": return STATUS;
             case "SAN": return SAN;
             case "SIZ": return SIZ;
             case "STR": return STR;
@@ -190,6 +194,9 @@ public class Player {
             case "Swim": return Swim;
             case "Throw": return Throw;
             case "Track": return Track;
+            case "Other1": return Other1;
+            case "Other2": return Other2;
+            case "Other3": return Other3;
             default:
                 throw new IllegalArgumentException("Unknown skill: " + skill);
         }
@@ -206,9 +213,9 @@ public class Player {
             case "EDU": EDU = value; break;
             case "INT": INT = value; break;
             case "LUCK": LUCK = value; break;
-            case "PER": PER = value; break;
-            case "POW": POW = value; break;
-            case "REP": REP = value; break;
+            case "SENSE": SENSE = value; break;
+            case "WILL": WILL = value; break;
+            case "STATUS": STATUS = value; break;
             case "SAN": SAN = value; break;
             case "SIZ": SIZ = value; break;
             case "STR": STR = value; break;
@@ -266,6 +273,9 @@ public class Player {
             case "Swim": Swim = value; break;
             case "Throw": Throw = value; break;
             case "Track": Track = value; break;
+            case "Other1": Other1 = value; break;
+            case "Other2": Other2 = value; break;
+            case "Other3": Other3 = value; break;
             default:
                 throw new IllegalArgumentException("Unknown skill: " + skill);
         }
@@ -273,7 +283,7 @@ public class Player {
 
     public void calculateMPAndHP () {
         this.setHP((this.getCON()+this.getSIZ())/10);
-        this.setMP(this.getPOW()/5);
+        this.setMP(this.getWILL()/5);
     }
 
     public void calculateBuildAndDB () {
@@ -348,11 +358,11 @@ public class Player {
             "Law","LibraryUse","Listen","Locksmith","MechanicalRepair","Medicine","NaturalWorld",
             "Navigate","Occult","Persuade","Pilot","Psychoanalysis","Psychology","Ride","Science",
             "ScienceOther","ScienceOther2","SleightOfHand","Stealth","Survival",
-            "Swim","Throw","Track"
+            "Swim","Throw","Track","Other1","Other2","Other3"
     };
 
         private static final String[] CHARACTERISTICS = {
-            "APP","BONUS","BRV","CON","DEX","EDU","INT","LUCK","PER","POW",
-            "REP","SAN","SIZ","STR","ARMOR","RES","SPOT"
+            "APP","BONUS","BRV","CON","DEX","EDU","INT","LUCK","SENSE","WILL",
+            "STATUS","SAN","SIZ","STR","ARMOR","RES","SPOT"
         };
 }

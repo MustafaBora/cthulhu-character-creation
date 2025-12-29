@@ -129,7 +129,7 @@ class RulesEngine {
     this.validateReady();
     return [
       'APP', 'BONUS', 'BRV', 'STA', 'AGI', 'EDU', 'INT', 'LUCK', 
-      'PER', 'POW', 'REP', 'SAN', 'SIZ', 'STR', 'ARMOR', 'RES'
+      'SENSE', 'WILL', 'STATUS', 'SAN', 'SIZ', 'STR', 'ARMOR', 'RES'
     ];
   }
 

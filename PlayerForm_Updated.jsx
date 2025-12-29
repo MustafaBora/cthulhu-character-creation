@@ -1,4 +1,14 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import defaultAvatar from "./assets/default-avatar.png";
+import frameHorizontalShort from "./assets/horizontal-short.png";
+import frameVertical from "./assets/vertical.png";
+import frameVerticalShort from "./assets/vertical-short.png";
+import cornerTL from "./assets/signs-1.png";
+import cornerTR from "./assets/signs-2.png";
+import cornerBL from "./assets/signs-3.png";
+import cornerBR from "./assets/signs-4.png";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 /**
  * Updated PlayerForm.jsx to use backend RulesSpec with multi-level penalties
@@ -23,17 +33,17 @@ const FIELD_DEFS = [
   { key: "ElectricalRepair", label: "Electrical Repair", type: "number" },
   { key: "FastTalk", label: "Fast Talk", type: "number" },
   { key: "FightingBrawl", label: "Fighting (Brawl)", type: "number" },
-  { key: "FightingOther", label: "Fighting (Other)", type: "number" },
-  { key: "FirearmsHandgun", label: "Firearms (Handgun)", type: "number" },
-  { key: "FirearmsOther", label: "Firearms (Other)", type: "number" },
-  { key: "FirearmsRifleShotgun", label: "Firearms (Shotgun)", type: "number" },
+  { key: "FightingOther", label: "FO", type: "number" },
+  { key: "FirearmsHandgun", label: "Firearms Handgun", type: "number" },
+  { key: "FirearmsOther", label: "FA-O", type: "number" },
+  { key: "FirearmsRifleShotgun", label: "Firearms Shotgun", type: "number" },
   { key: "FirstAid", label: "First Aid", type: "number" },
   { key: "History", label: "History", type: "number" },
   { key: "Intimidate", label: "Intimidate", type: "number" },
   { key: "Jump", label: "Jump", type: "number" },
-  { key: "LanguageOther1", label: "Language (Other 1)", type: "number" },
-  { key: "LanguageOther2", label: "Language (Other 2)", type: "number" },
-  { key: "LanguageOther3", label: "Language (Other 3)", type: "number" },
+  { key: "LanguageOther1", label: "LO1", type: "number" },
+  { key: "LanguageOther2", label: "LO2", type: "number" },
+  { key: "LanguageOther3", label: "LO3", type: "number" },
   { key: "LanguageOwn", label: "Language (Own)", type: "number" },
   { key: "Law", label: "Law", type: "number" },
   { key: "LibraryUse", label: "Library Use", type: "number" },
@@ -50,14 +60,17 @@ const FIELD_DEFS = [
   { key: "Psychology", label: "Psychology", type: "number" },
   { key: "Ride", label: "Ride", type: "number" },
   { key: "Science", label: "Science", type: "number" },
-  { key: "ScienceOther", label: "Science (Other)", type: "number" },
-  { key: "ScienceOther2", label: "Science (Other 2)", type: "number" },
+  { key: "ScienceOther", label: "SO", type: "number" },
+  { key: "ScienceOther2", label: "SO2", type: "number" },
   { key: "SleightOfHand", label: "Sleight of Hand", type: "number" },
   { key: "Stealth", label: "Stealth", type: "number" },
   { key: "Survival", label: "Survival", type: "number" },
   { key: "Swim", label: "Swim", type: "number" },
   { key: "Throw", label: "Throw", type: "number" },
   { key: "Track", label: "Track", type: "number" },
+  { key: "Other1", label: "O1", type: "number" },
+  { key: "Other2", label: "O2", type: "number" },
+  { key: "Other3", label: "O3", type: "number" },
 ];
 
 // Cost değerine göre renk döndürür
@@ -89,74 +102,87 @@ function getCostTextColor(cost) {
  * Belirli bir değerde 1 puan artırmanın maliyeti (multi-level threshold penaltileriyle)
  * Supports 5 penalty levels: 40->1.5x, 50->2x, 60->3x, 70->4x, 80->6x
  */
-function getCurrentCostPerPoint(rulesSpec, usage, value) {
+function getCurrentCostPerPoint(rulesSpec, costPerPoint, value) {
   if (!rulesSpec || !rulesSpec.penaltyRules) return 0;
-  if (usage === undefined || usage === null) return 0;
+  if (costPerPoint === undefined || costPerPoint === null) return 0;
   
   const { thresholds, multipliers } = rulesSpec.penaltyRules;
   
-  if (!thresholds || !multipliers || thresholds.length === 0) return usage;
+  if (!thresholds || !multipliers || thresholds.length === 0) return costPerPoint;
   
   // Find which multiplier applies to current value
   for (let i = 0; i < thresholds.length; i++) {
     if (value >= thresholds[i]) {
       // Check if we're in this bracket or a higher one
       if (i === thresholds.length - 1 || value < thresholds[i + 1]) {
-        return usage * multipliers[i];
+        return costPerPoint * multipliers[i];
       }
     }
   }
   
-  return usage; // Before first threshold: base cost (1x multiplier)
+  return costPerPoint; // Before first threshold: base cost (1x multiplier)
 }
 
 /**
  * Belirli bir seviyeye ulaşmak için gereken toplam puanı hesaplar.
- * Updated to use rulesSpec from backend with multi-level penalties
+ * Updated to match backend logic exactly with multi-level penalties
  */
 function getCostBetween(rulesSpec, skill, currentValue, targetValue) {
   if (!rulesSpec) return 0;
   
-  const usage = rulesSpec.usage[skill] ?? 0;
+  const cost = rulesSpec.cost[skill] ?? 0;
   const { thresholds, multipliers } = rulesSpec.penaltyRules;
 
   // Hiç iyileştirme yoksa maliyet sıfır
-  if (targetValue <= currentValue || usage === 0) {
+  if (targetValue <= currentValue || cost === 0) {
     return 0;
   }
 
   if (!thresholds || !multipliers || thresholds.length === 0) {
     // No penalty system, just linear cost
-    return (targetValue - currentValue) * usage;
+    return (targetValue - currentValue) * cost;
   }
 
   let totalCost = 0;
   let current = currentValue;
 
-  // Process each threshold level
+  // Process each threshold level (matching backend logic)
   for (let i = 0; i < thresholds.length; i++) {
     const threshold = thresholds[i];
     const multiplier = multipliers[i];
     
     if (current >= threshold) {
-      // Already past this threshold, continue
+      // Skip this threshold, already passed it
       continue;
     }
     
     if (current < threshold && current < targetValue) {
-      // We haven't reached this threshold yet
-      const nextThreshold = (i + 1 < thresholds.length) ? thresholds[i + 1] : Infinity;
+      // Calculate cost from current to this threshold (or to target if target is before this threshold)
+      const nextThreshold = (i + 1 < thresholds.length) ? thresholds[i + 1] : Number.MAX_SAFE_INTEGER;
       let end = Math.min(targetValue, nextThreshold);
       
-      // Cost from current to this threshold (or to target if target is before threshold)
       if (current < threshold) {
         end = Math.min(end, threshold);
       }
       
       const diff = end - current;
       if (diff > 0) {
-        totalCost += diff * usage; // Before threshold: base multiplier (1x)
-        current = end;
+        const currentMultiplier = (current >= threshold) ? multiplier : 1.0;
+        if (current < threshold && end > threshold) {
+          // Cost spans from before threshold to after - split it
+          const diffBefore = threshold - current;
+          totalCost += diffBefore * cost * 1.0; // Before threshold: 1x
+          totalCost += (end - threshold) * cost * multiplier;
+          current = end;
+        } else if (end <= threshold) {
+          // Entirely before threshold
+          totalCost += diff * cost * 1.0;
+          current = end;
+        } else {
+          // Entirely at or above threshold
+          totalCost += diff * cost * multiplier;
+          current = end;
+        }
       }
     }
   }
@@ -165,10 +191,10 @@ function getCostBetween(rulesSpec, skill, currentValue, targetValue) {
   if (current < targetValue) {
     const lastMultiplier = multipliers[multipliers.length - 1];
     const diff = targetValue - current;
-    totalCost += diff * usage * lastMultiplier;
+    totalCost += diff * cost * lastMultiplier;
   }
 
-  return totalCost;
+  return Math.round(totalCost);
 }
 
 /**
@@ -182,7 +208,7 @@ function computeUsedXP(rulesSpec, values) {
   let sum = 0;
   
   // Characteristics
-  const characteristics = ["APP", "BONUS", "BRV", "STA", "AGI", "EDU", "INT", "LUCK", "PER", "SPOT", "POW", "REP", "SAN", "SIZ", "ARMOR", "RES", "STR"];
+  const characteristics = ["APP", "BONUS", "BRV", "STA", "AGI", "EDU", "INT", "LUCK", "SENSE", "SPOT", "WILL", "STATUS", "SAN", "SIZ", "ARMOR", "RES", "STR"];
   console.log("--- Characteristics ---");
   for (const key of characteristics) {
     const v = Number(values[key]) || 0;
@@ -194,25 +220,62 @@ function computeUsedXP(rulesSpec, values) {
     sum += cost;
   }
   
-  // Skills
+  // Skills - using backend key names (with spaces)
   const skills = [
-    "Accounting", "Anthropology", "Appraise", "Archeology", "ArtCraft", "ArtCraft2",
-    "Charm", "Climb", "CreditRating", "CthulhuMythos", "Disguise", "Dodge",
-    "DriveAuto", "ElectricalRepair", "FastTalk", "FightingBrawl", "FightingOther",
-    "FirearmsHandgun", "FirearmsOther", "FirearmsRifleShotgun",
-    "FirstAid", "History", "Intimidate", "Jump", "LanguageOther1", "LanguageOther2",
-    "LanguageOther3", "LanguageOwn", "Law", "LibraryUse", "Listen", "Locksmith",
-    "MechanicalRepair", "Medicine", "NaturalWorld", "Navigate", "Occult", "Persuade",
-    "Pilot", "Psychoanalysis", "Psychology", "Ride", "Science", "ScienceOther",
-    "ScienceOther2", "SleightOfHand", "Stealth", "Survival", "Swim", "Throw", "Track"
+    "Accounting", "Anthropology", "Appraise", "Archeology", "Art Craft", "Art Craft 2",
+    "Charm", "Climb", "Credit Rating", "Cthulhu Mythos", "Disguise", "Dodge",
+    "Drive Auto", "Electrical Repair", "Fast Talk", "Fighting Brawl", "Fighting Other",
+    "Firearms Handgun", "Firearms Other", "Firearms Rifle Shotgun",
+    "First Aid", "History", "Intimidate", "Jump", "Language Other 1", "Language Other 2",
+    "Language Other 3", "Language Own", "Law", "Library Use", "Listen", "Locksmith",
+    "Mechanical Repair", "Medicine", "Natural World", "Navigate", "Occult", "Persuade",
+    "Pilot", "Psychoanalysis", "Psychology", "Ride", "Science", "Science Other",
+    "Science Other 2", "Sleight Of Hand", "Stealth", "Survival", "Swim", "Throw", "Track",
+    "Other1", "Other2", "Other3"
   ];
   console.log("--- Skills ---");
-  for (const key of skills) {
-    const v = Number(values[key]) || 0;
-    const baseValue = rulesSpec.base[key] ?? 0;
-    const cost = getCostBetween(rulesSpec, key, baseValue, v);
+  
+  // Map frontend keys to backend keys for skills
+  const skillKeyMap = {
+    "ArtCraft": "Art Craft",
+    "ArtCraft2": "Art Craft 2",
+    "CreditRating": "Credit Rating",
+    "CthulhuMythos": "Cthulhu Mythos",
+    "DriveAuto": "Drive Auto",
+    "ElectricalRepair": "Electrical Repair",
+    "FastTalk": "Fast Talk",
+    "FightingBrawl": "Fighting Brawl",
+    "FightingOther": "Fighting Other",
+    "FirearmsHandgun": "Firearms Handgun",
+    "FirearmsOther": "Firearms Other",
+    "FirearmsRifleShotgun": "Firearms Rifle Shotgun",
+    "FirstAid": "First Aid",
+    "LanguageOther1": "Language Other 1",
+    "LanguageOther2": "Language Other 2",
+    "LanguageOther3": "Language Other 3",
+    "LanguageOwn": "Language Own",
+    "LibraryUse": "Library Use",
+    "MechanicalRepair": "Mechanical Repair",
+    "NaturalWorld": "Natural World",
+    "ScienceOther": "Science Other",
+    "ScienceOther2": "Science Other 2",
+    "SleightOfHand": "Sleight Of Hand",
+    "Other1": "Other1",
+    "Other2": "Other2",
+    "Other3": "Other3"
+  };
+  
+  // Calculate cost for each skill using FIELD_DEFS
+  for (const def of FIELD_DEFS) {
+    if (def.type !== "number") continue;
+    
+    const frontendKey = def.key;
+    const backendKey = skillKeyMap[frontendKey] || frontendKey;
+    const v = Number(values[frontendKey]) || 0;
+    const baseValue = rulesSpec.base[backendKey] ?? 0;
+    const cost = getCostBetween(rulesSpec, backendKey, baseValue, v);
     if (v > 0 || cost > 0) {
-      console.log(`${key}: base=${baseValue}, value=${v}, cost=${cost}`);
+      console.log(`${frontendKey} (${backendKey}): base=${baseValue}, value=${v}, cost=${cost}`);
     }
     sum += cost;
   }
@@ -228,7 +291,7 @@ function applyDerived(rulesSpec, values) {
   const updated = { ...values };
 
   updated.HP = Math.floor((v("STA") + v("SIZ")) / 10);
-  updated.MP = Math.floor(v("POW") / 5);
+  updated.MP = Math.floor(v("WILL") / 5);
 
   const sum = v("SIZ") + v("STR");
   if (sum > 164) {
@@ -263,6 +326,15 @@ function applyDerived(rulesSpec, values) {
   const totalXP = v("totalXP");
   updated.usedXP = usedXP;
   updated.remainingXP = totalXP - usedXP;
+  
+  // Calculate level based on used XP - minimum level is always 1
+  if (rulesSpec.levelRules) {
+    const { baseXP, xpPerLevel } = rulesSpec.levelRules;
+    const level = Math.max(1, Math.floor((usedXP - baseXP) / xpPerLevel));
+    updated.level = level;
+  } else {
+    updated.level = 1;
+  }
 
   return updated;
 }
@@ -270,8 +342,37 @@ function applyDerived(rulesSpec, values) {
 function clampStat(rulesSpec, num, fieldName) {
   if (!rulesSpec) return num;
   
+  // Map frontend keys to backend keys
+  const skillKeyMap = {
+    "ArtCraft": "Art Craft",
+    "ArtCraft2": "Art Craft 2",
+    "CreditRating": "Credit Rating",
+    "CthulhuMythos": "Cthulhu Mythos",
+    "DriveAuto": "Drive Auto",
+    "ElectricalRepair": "Electrical Repair",
+    "FastTalk": "Fast Talk",
+    "FightingBrawl": "Fighting Brawl",
+    "FightingOther": "Fighting Other",
+    "FirearmsHandgun": "Firearms Handgun",
+    "FirearmsOther": "Firearms Other",
+    "FirearmsRifleShotgun": "Firearms Rifle Shotgun",
+    "FirstAid": "First Aid",
+    "LanguageOther1": "Language Other 1",
+    "LanguageOther2": "Language Other 2",
+    "LanguageOther3": "Language Other 3",
+    "LanguageOwn": "Language Own",
+    "LibraryUse": "Library Use",
+    "MechanicalRepair": "Mechanical Repair",
+    "NaturalWorld": "Natural World",
+    "ScienceOther": "Science Other",
+    "ScienceOther2": "Science Other 2",
+    "SleightOfHand": "Sleight Of Hand"
+  };
+  
+  const backendKey = skillKeyMap[fieldName] || fieldName;
+  
   let n = Number(num) || 0;
-  const minValue = rulesSpec.base[fieldName] ? rulesSpec.base[fieldName] : 0;
+  const minValue = rulesSpec.base[backendKey] ? rulesSpec.base[backendKey] : 0;
   if (n < minValue) n = minValue;
   // ARMOR ve RES için max 1, diğerleri için max 90
   const maxValue = (fieldName === 'ARMOR' || fieldName === 'RES') ? 1 : 90;
@@ -281,6 +382,33 @@ function clampStat(rulesSpec, num, fieldName) {
 
 function getInitialForm(rulesSpec, mode, player) {
   if (!rulesSpec) return {};
+  
+  // Map frontend keys to backend keys
+  const skillKeyMap = {
+    "ArtCraft": "Art Craft",
+    "ArtCraft2": "Art Craft 2",
+    "CreditRating": "Credit Rating",
+    "CthulhuMythos": "Cthulhu Mythos",
+    "DriveAuto": "Drive Auto",
+    "ElectricalRepair": "Electrical Repair",
+    "FastTalk": "Fast Talk",
+    "FightingBrawl": "Fighting Brawl",
+    "FightingOther": "Fighting Other",
+    "FirearmsHandgun": "Firearms Handgun",
+    "FirearmsOther": "Firearms Other",
+    "FirearmsRifleShotgun": "Firearms Rifle Shotgun",
+    "FirstAid": "First Aid",
+    "LanguageOther1": "Language Other 1",
+    "LanguageOther2": "Language Other 2",
+    "LanguageOther3": "Language Other 3",
+    "LanguageOwn": "Language Own",
+    "LibraryUse": "Library Use",
+    "MechanicalRepair": "Mechanical Repair",
+    "NaturalWorld": "Natural World",
+    "ScienceOther": "Science Other",
+    "ScienceOther2": "Science Other 2",
+    "SleightOfHand": "Sleight Of Hand"
+  };
   
   if (mode === "create") {
     // Yeni oyuncu oluşturma
@@ -296,6 +424,7 @@ function getInitialForm(rulesSpec, mode, player) {
       totalXP: 200000,
       usedXP: 0,
       remainingXP: 200000,
+      level: 1,
       Build: 0,
       damageBonus: "0",
       MP: 0,
@@ -306,14 +435,16 @@ function getInitialForm(rulesSpec, mode, player) {
       avatar: "",
     };
 
-    // Karakteristikler ve beceriler için BASE değerlerini başlangıç olarak ayarla
+    // Karakteristikler için BASE değerlerini başlangıç olarak ayarla
     for (const key of Object.keys(rulesSpec.base)) {
       obj[key] = rulesSpec.base[key] ?? obj[key];
     }
 
+    // FIELD_DEFS'teki her skill için backend key ile base değeri al
     for (const def of FIELD_DEFS) {
       if (def.type === "number") {
-        obj[def.key] = rulesSpec.base[def.key] ?? 0;
+        const backendKey = skillKeyMap[def.key] || def.key;
+        obj[def.key] = rulesSpec.base[backendKey] ?? 0;
       } else {
         obj[def.key] = "";
       }
@@ -324,14 +455,19 @@ function getInitialForm(rulesSpec, mode, player) {
     // Edit modu
     return applyDerived(rulesSpec, {
       ...player,
+      // Map backend CON/DEX to frontend STA/AGI for consistency in the UI
+      STA: player?.CON ?? player?.STA ?? 0,
+      AGI: player?.DEX ?? player?.AGI ?? 0,
+      SENSE: player?.SENSE ?? player?.PER ?? 0,
+      STATUS: player?.STATUS ?? player?.REP ?? 0,
       ARMOR: player?.ARMOR ?? player?.armor ?? 0,
       RES: player?.RES ?? player?.res ?? 0,
-      avatar: player.avatar || "",
+      avatar: player?.avatar || "",
     });
   }
 }
 
-function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, usage, readOnly = false, isSmallStep = false }) {
+function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, cost, readOnly = false, isSmallStep = false }) {
   const handleChange = readOnly
     ? undefined
     : (e) => onChange && onChange(e.target.value);
@@ -341,7 +477,7 @@ function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, us
     : () => onBlur && onBlur();
 
   const numericValue = Number(value) || 0;
-  const costNow = getCurrentCostPerPoint(rulesSpec, usage, numericValue);
+  const costNow = getCurrentCostPerPoint(rulesSpec, cost, numericValue);
   const costColor = getCostColor(costNow);
   const stepAmount = isSmallStep ? 1 : 5;
   const tooltipText = `${costNow * stepAmount} XP`;
@@ -427,6 +563,28 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
   const [form, setForm] = useState(() => getInitialForm(null, mode, player));
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useTranslation();
+
+  const handleSetAll = (value) => {
+    if (!rulesSpec) return;
+    const keys = [
+      "APP", "BONUS", "BRV", "STA", "AGI", "EDU", "INT", "LUCK",
+      "SENSE", "SPOT", "WILL", "STATUS", "SAN", "SIZ", "ARMOR", "RES", "STR"
+    ];
+    setForm((prev) => {
+      const next = { ...prev };
+      for (const k of keys) {
+        next[k] = clampStat(rulesSpec, value, k);
+      }
+      // Also set all numeric skills to the target value
+      for (const def of FIELD_DEFS) {
+        if (def.type === "number") {
+          next[def.key] = clampStat(rulesSpec, value, def.key);
+        }
+      }
+      return applyDerived(rulesSpec, next);
+    });
+  };
 
   // Load rules spec from backend on mount
   useEffect(() => {
@@ -541,6 +699,11 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
         }
       });
 
+      // Backend entity uses CON/DEX instead of STA/AGI
+      // Ensure payload includes these mapped values to avoid XP mismatches
+      payload.CON = Number(payload.STA) || 0;
+      payload.DEX = Number(payload.AGI) || 0;
+
       let response;
 
       if (mode === "create") {
@@ -558,7 +721,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
         }
 
         const created = await response.json();
-        onCreated && onCreated(created);
+        onCreated && onCreated(created, { stay: stayOnPage });
       } else {
         response = await fetch(`http://localhost:8080/players/${player.id}`, {
           method: "PUT",
@@ -574,7 +737,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
         }
 
         const updated = await response.json();
-        onUpdated && onUpdated(updated);
+        onUpdated && onUpdated(updated, { stay: stayOnPage });
       }
 
       if (!stayOnPage && onCancel) {
@@ -588,13 +751,43 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
     }
   };
 
+  const handleDelete = async () => {
+    if (!player || !player.id) return;
+    const confirmed = window.confirm("Bu oyuncuyu silmek istediğinize emin misiniz?");
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Token bulunamadı. Lütfen tekrar giriş yap.");
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8080/players/${player.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Player silinemedi.");
+      }
+
+      if (onCancel) onCancel();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Silme işlemi sırasında hata oluştu.");
+    }
+  };
+
   // Show loading state while rules are being fetched
   if (rulesLoading) {
     return (
       <div style={styles.pageWrapper}>
         <div style={styles.page}>
           <div style={{ padding: "2rem", textAlign: "center" }}>
-            <p>Rules yükleniyor...</p>
+            <p>{t("playerForm.rulesLoading")}</p>
           </div>
         </div>
       </div>
@@ -607,11 +800,11 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
       <div style={styles.pageWrapper}>
         <div style={styles.page}>
           <div style={{ ...styles.error, margin: "2rem" }}>
-            <p><strong>Hata:</strong> {rulesError}</p>
-            <p>Sunucunun çalışır durumda olduğundan emin olun.</p>
+            <p><strong>{t("playerForm.rulesErrorTitle")}:</strong> {rulesError}</p>
+            <p>{t("playerForm.rulesErrorHint")}</p>
           </div>
           <button onClick={onCancel} style={{ ...styles.button, margin: "1rem", background: "#9ca3af" }}>
-            Geri dön
+            {t("playerForm.back")}
           </button>
         </div>
       </div>
@@ -631,6 +824,77 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
           appearance: textfield;
         }
 
+        /* CoC decorative frame */
+        .sheet-page {
+          position: relative;
+          --frame-thickness: 28px;
+        }
+        .coc-frame {
+          pointer-events: none;
+        }
+        .frame-top,
+        .frame-bottom {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          height: var(--frame-thickness);
+          background-image: url(${frameHorizontalShort});
+          background-repeat: repeat-x;
+          background-size: auto 100%;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          z-index: 1;
+        }
+        .frame-top { top: 0; }
+        .frame-bottom { bottom: 0; }
+                /* Corner signs */
+                .coc-corner {
+                  position: absolute;
+                  width: calc(var(--frame-thickness) * 3);
+                  height: calc(var(--frame-thickness) * 3);
+                  background-repeat: no-repeat;
+                  background-size: contain;
+                  -webkit-print-color-adjust: exact;
+                  print-color-adjust: exact;
+                  z-index: 1;
+                }
+                .corner-tl { top: 0; left: 0; background-image: url(${cornerTL}); }
+                .corner-tr { top: 0; right: 0; background-image: url(${cornerTR}); }
+                .corner-bl { bottom: 0; left: 0; background-image: url(${cornerBL}); }
+                .corner-br { bottom: 0; right: 0; background-image: url(${cornerBR}); }
+        .frame-left,
+        .frame-right {
+          position: absolute;
+          top: var(--frame-thickness);
+          height: calc(100% - (var(--frame-thickness) * 2));
+          width: var(--frame-thickness);
+          background-image: url(${frameVertical});
+          background-repeat: repeat-y;
+          background-size: 100% auto;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          z-index: 1;
+        }
+        .frame-left { left: 0; }
+        .frame-right { right: 0; }
+
+        /* Use short vertical for small screens */
+        @media (max-height: 700px), (max-width: 640px) {
+          .frame-left,
+          .frame-right {
+            background-image: url(${frameVerticalShort});
+          }
+        }
+
+        /* Divider between characteristics and skills */
+        .sheet-divider {
+          position: relative;
+          height: 1px;
+          margin: 10px 0;
+          background: linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0.35), rgba(0,0,0,0.05));
+          z-index: 2;
+        }
+
         .print-bg-image {
           display: none;
         }
@@ -638,6 +902,20 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
         @media print {
           @page { size: A4; margin: 8mm; }
           .sheet-page { padding: 0.75rem !important; position: relative !important; }
+          /* Ensure frame prints */
+          .frame-top,
+          .frame-bottom,
+          .frame-left,
+          .frame-right {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            opacity: 1 !important;
+          }
+          .coc-corner {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            opacity: 1 !important;
+          }
           .print-bg-image {
             display: block !important;
             position: absolute !important;
@@ -654,12 +932,18 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
           }
           .sheet-header, .sheet-grid, form {
             position: relative !important;
-            z-index: 1 !important;
+            z-index: 2 !important;
           }
-          .sheet-header { gap: 3px 4px !important; background: transparent !important; border: none !important; }
+          /* Keep avatar box transparent in print so PNG transparency is preserved */
+          .avatarBox { background: transparent !important; }
+          /* Make avatar column wrapper transparent in print */
+          .avatarCol { background: transparent !important; border-color: rgba(0,0,0,0.18) !important; }
+          /* Ensure divider prints clearly */
+          .sheet-divider { background: rgba(0,0,0,0.35) !important; height: 1px !important; }
+          .sheet-header { gap: 3px 4px !important; background: transparent !important; border: 1px solid #111 !important; border-radius: 8px !important; }
           .sheet-header .cell { padding: 2px 3px !important; background: transparent !important; border: 1px solid rgba(0,0,0,0.18) !important; }
           .sheet-header input { padding: 2px 3px !important; font-size: 10px !important; background: transparent !important; }
-          .sheet-grid { gap: 0.5rem 0.9rem !important; background: transparent !important; border: none !important; }
+          .sheet-grid { gap: 0.5rem 0.9rem !important; background: transparent !important; border: 1px solid #111 !important; border-radius: 12px !important; margin: 12px !important; }
           .sheet-grid .field-header > span:first-child { padding-left: 5px !important; }
           .sheet-grid .field-header { gap: 0.28rem !important; }
           .sheet-grid .value-row { gap: 3px !important; }
@@ -700,6 +984,16 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
       <div style={styles.mainContainer}>
         <div className="sheet-page" style={styles.page}>
+          {/* Decorative frame elements */}
+          <div className="coc-frame frame-top" aria-hidden="true"></div>
+          <div className="coc-frame frame-left" aria-hidden="true"></div>
+          <div className="coc-frame frame-right" aria-hidden="true"></div>
+          <div className="coc-frame frame-bottom" aria-hidden="true"></div>
+          {/* Corner signs */}
+          <div className="coc-corner corner-tl" aria-hidden="true"></div>
+          <div className="coc-corner corner-tr" aria-hidden="true"></div>
+          <div className="coc-corner corner-bl" aria-hidden="true"></div>
+          <div className="coc-corner corner-br" aria-hidden="true"></div>
           {form.avatar && (
             <img
               src={`data:image/*;base64,${form.avatar}`}
@@ -709,24 +1003,24 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             />
           )}
           
+          <div className="no-print" style={{ display: "flex", justifyContent: "flex-end", marginBottom: "8px" }}>
+            <LanguageSwitcher variant="compact" />
+          </div>
+          
           <div className="sheet-header" style={styles.headerGrid}>
             {/* Row 1 */}
+            <TextCell label="Player" value={form.player} onChange={(v) => handleTextChange("player", v)} />
             <TextCell label="Name" value={form.name} onChange={(v) => handleTextChange("name", v)} />
             <TextCell label="Birthplace" value={form.birthPlace} onChange={(v) => handleTextChange("birthPlace", v)} />
-            <TextCell label="Pronoun" value={form.pronoun} onChange={(v) => handleTextChange("pronoun", v)} />
 
             {/* Avatar */}
-            <div style={styles.avatarCol}>
-              <div style={styles.avatarBox} onClick={() => document.getElementById('avatar-upload').click()}>
-                {form.avatar ? (
-                  <img
-                    src={`data:image/*;base64,${form.avatar}`}
-                    alt={form.name || "avatar"}
-                    style={styles.avatarImg}
-                  />
-                ) : (
-                  <div style={styles.avatarPlaceholder}>Resim Yükle</div>
-                )}
+            <div className="avatarCol" style={styles.avatarCol}>
+              <div className="avatarBox" style={styles.avatarBox} onClick={() => document.getElementById('avatar-upload').click()} title={t("playerForm.uploadImageTooltip")}>
+                <img
+                  src={form.avatar ? `data:image/*;base64,${form.avatar}` : defaultAvatar}
+                  alt={form.name || "avatar"}
+                  style={styles.avatarImg}
+                />
               </div>
               <input
                 id="avatar-upload"
@@ -738,72 +1032,121 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               />
             </div>
 
-            {/* Row 2 */}
-            <TextCell label="Occupation" value={form.occupation} onChange={(v) => handleTextChange("occupation", v)} />
-            <TextCell label="Residence" value={form.residence} onChange={(v) => handleTextChange("residence", v)} />
-            <div style={styles.cell} className="age-cell">
-              <div style={styles.cellLabel}>Age</div>
-              <input
-                type="number"
-                min={0}
-                max={120}
-                value={form.age || 0}
-                onChange={(e) => handleNumericChange("age", e.target.value)}
-                className="age-input"
-                style={styles.lineInput}
-              />
+            {/* Row 2: Pronoun and Age in same div */}
+            <div style={{ ...styles.cell, background: "transparent" }} className="pronoun-age-cell">
+              <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={styles.cellLabel}>Pronoun</div>
+                  <input
+                    type="text"
+                    value={form.pronoun || ""}
+                    onChange={(e) => handleTextChange("pronoun", e.target.value)}
+                    className="text-input"
+                    style={styles.lineInput}
+                  />
+                </div>
+                <div style={{ flex: "0 0 60px" }}>
+                  <div style={styles.cellLabel}>Age</div>
+                  <input
+                    type="number"
+                    min={0}
+                    max={120}
+                    value={form.age || 0}
+                    onChange={(e) => handleNumericChange("age", e.target.value)}
+                    className="age-input"
+                    style={styles.lineInput}
+                  />
+                </div>
+              </div>
             </div>
+            <TextCell label="Residence" value={form.residence} onChange={(v) => handleTextChange("residence", v)} />
+
+            {/* Row 3 */}
+            <TextCell label="Occupation" value={form.occupation} onChange={(v) => handleTextChange("occupation", v)} />
 
             {/* Characteristics from rulesSpec */}
-            <StatCell rulesSpec={rulesSpec} label="Strength" value={form.STR} base={rulesSpec.base.STR} usage={rulesSpec.usage.STR} onChange={(v) => handleNumericChange("STR", v)} onBlur={() => handleNumericBlur("STR")} onDelta={(d) => handleDelta("STR", d)} />
-            <StatCell rulesSpec={rulesSpec} label="SIZE" value={form.SIZ} base={rulesSpec.base.SIZ} usage={rulesSpec.usage.SIZ} onChange={(v) => handleNumericChange("SIZ", v)} onBlur={() => handleNumericBlur("SIZ")} onDelta={(d) => handleDelta("SIZ", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Strength" value={form.STR} base={rulesSpec.base.STR} cost={rulesSpec.cost.STR} onChange={(v) => handleNumericChange("STR", v)} onBlur={() => handleNumericBlur("STR")} onDelta={(d) => handleDelta("STR", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Size" value={form.SIZ} base={rulesSpec.base.SIZ} cost={rulesSpec.cost.SIZ} onChange={(v) => handleNumericChange("SIZ", v)} onBlur={() => handleNumericBlur("SIZ")} onDelta={(d) => handleDelta("SIZ", d)} />
             <ReadSmall label="Hit Points" value={form.HP ?? 0} />
 
-            <StatCell rulesSpec={rulesSpec} label="Stamina" value={form.STA} base={rulesSpec.base.STA} usage={rulesSpec.usage.STA} onChange={(v) => handleNumericChange("STA", v)} onBlur={() => handleNumericBlur("STA")} onDelta={(d) => handleDelta("STA", d)} />
-            <StatCell rulesSpec={rulesSpec} label="POW" value={form.POW} base={rulesSpec.base.POW} usage={rulesSpec.usage.POW} onChange={(v) => handleNumericChange("POW", v)} onBlur={() => handleNumericBlur("POW")} onDelta={(d) => handleDelta("POW", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Stamina" value={form.STA} base={rulesSpec.base.STA} cost={rulesSpec.cost.STA} onChange={(v) => handleNumericChange("STA", v)} onBlur={() => handleNumericBlur("STA")} onDelta={(d) => handleDelta("STA", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Will" value={form.WILL} base={rulesSpec.base.WILL} cost={rulesSpec.cost.WILL} onChange={(v) => handleNumericChange("WILL", v)} onBlur={() => handleNumericBlur("WILL")} onDelta={(d) => handleDelta("WILL", d)} />
             <ReadSmall label="Magic Points" value={form.MP ?? 0} />
 
-            <StatCell rulesSpec={rulesSpec} label="Agility" value={form.AGI} base={rulesSpec.base.AGI} usage={rulesSpec.usage.AGI} onChange={(v) => handleNumericChange("AGI", v)} onBlur={() => handleNumericBlur("AGI")} onDelta={(d) => handleDelta("AGI", d)} />
-            <StatCell rulesSpec={rulesSpec} label="Education" value={form.EDU} base={rulesSpec.base.EDU} usage={rulesSpec.usage.EDU} onChange={(v) => handleNumericChange("EDU", v)} onBlur={() => handleNumericBlur("EDU")} onDelta={(d) => handleDelta("EDU", d)} />
-            <StatCell rulesSpec={rulesSpec} label="Luck" value={form.LUCK} base={rulesSpec.base.LUCK} usage={rulesSpec.usage.LUCK} onChange={(v) => handleNumericChange("LUCK", v)} onBlur={() => handleNumericBlur("LUCK")} onDelta={(d) => handleDelta("LUCK", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Agility" value={form.AGI} base={rulesSpec.base.AGI} cost={rulesSpec.cost.AGI} onChange={(v) => handleNumericChange("AGI", v)} onBlur={() => handleNumericBlur("AGI")} onDelta={(d) => handleDelta("AGI", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Education" value={form.EDU} base={rulesSpec.base.EDU} cost={rulesSpec.cost.EDU} onChange={(v) => handleNumericChange("EDU", v)} onBlur={() => handleNumericBlur("EDU")} onDelta={(d) => handleDelta("EDU", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Luck" value={form.LUCK} base={rulesSpec.base.LUCK} cost={rulesSpec.cost.LUCK} onChange={(v) => handleNumericChange("LUCK", v)} onBlur={() => handleNumericBlur("LUCK")} onDelta={(d) => handleDelta("LUCK", d)} />
 
-            <StatCell rulesSpec={rulesSpec} label="Intellect" value={form.INT} base={rulesSpec.base.INT} usage={rulesSpec.usage.INT} onChange={(v) => handleNumericChange("INT", v)} onBlur={() => handleNumericBlur("INT")} onDelta={(d) => handleDelta("INT", d)} />
-            <StatCell rulesSpec={rulesSpec} label="Appeal" value={form.APP} base={rulesSpec.base.APP} usage={rulesSpec.usage.APP} onChange={(v) => handleNumericChange("APP", v)} onBlur={() => handleNumericBlur("APP")} onDelta={(d) => handleDelta("APP", d)} />
-            <StatCell rulesSpec={rulesSpec} label="Bonus" value={form.BONUS} base={rulesSpec.base.BONUS} usage={rulesSpec.usage.BONUS} onChange={(v) => handleNumericChange("BONUS", v)} onBlur={() => handleNumericBlur("BONUS")} onDelta={(d) => handleDelta("BONUS", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Intellect" value={form.INT} base={rulesSpec.base.INT} cost={rulesSpec.cost.INT} onChange={(v) => handleNumericChange("INT", v)} onBlur={() => handleNumericBlur("INT")} onDelta={(d) => handleDelta("INT", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Appeal" value={form.APP} base={rulesSpec.base.APP} cost={rulesSpec.cost.APP} onChange={(v) => handleNumericChange("APP", v)} onBlur={() => handleNumericBlur("APP")} onDelta={(d) => handleDelta("APP", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Bonus" value={form.BONUS} base={rulesSpec.base.BONUS} cost={rulesSpec.cost.BONUS} onChange={(v) => handleNumericChange("BONUS", v)} onBlur={() => handleNumericBlur("BONUS")} onDelta={(d) => handleDelta("BONUS", d)} />
             
-            <StatCell rulesSpec={rulesSpec} label="Spot" value={form.SPOT} base={rulesSpec.base.SPOT} usage={rulesSpec.usage.SPOT} onChange={(v) => handleNumericChange("SPOT", v)} onBlur={() => handleNumericBlur("SPOT")} onDelta={(d) => handleDelta("SPOT", d)} />
-            <StatCell rulesSpec={rulesSpec} label="Perception" value={form.PER} base={rulesSpec.base.PER} usage={rulesSpec.usage.PER} onChange={(v) => handleNumericChange("PER", v)} onBlur={() => handleNumericBlur("PER")} onDelta={(d) => handleDelta("PER", d)} />
-            <StatCell rulesSpec={rulesSpec} label="Sanity" value={form.SAN} base={rulesSpec.base.SAN} usage={rulesSpec.usage.SAN} onChange={(v) => handleNumericChange("SAN", v)} onBlur={() => handleNumericBlur("SAN")} onDelta={(d) => handleDelta("SAN", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Spot Hidden" value={form.SPOT} base={rulesSpec.base.SPOT} cost={rulesSpec.cost.SPOT} onChange={(v) => handleNumericChange("SPOT", v)} onBlur={() => handleNumericBlur("SPOT")} onDelta={(d) => handleDelta("SPOT", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Sense" value={form.SENSE} base={rulesSpec.base.SENSE} cost={rulesSpec.cost.SENSE} onChange={(v) => handleNumericChange("SENSE", v)} onBlur={() => handleNumericBlur("SENSE")} onDelta={(d) => handleDelta("SENSE", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Sanity" value={form.SAN} base={rulesSpec.base.SAN} cost={rulesSpec.cost.SAN} onChange={(v) => handleNumericChange("SAN", v)} onBlur={() => handleNumericBlur("SAN")} onDelta={(d) => handleDelta("SAN", d)} />
             <ReadSmall label="Build" value={form.Build ?? 0} />
 
-            <ReadSmall label="Reputation" value={form.REP ?? 0} />
-            <StatCell rulesSpec={rulesSpec} label="Bravery" value={form.BRV} base={rulesSpec.base.BRV} usage={rulesSpec.usage.BRV} onChange={(v) => handleNumericChange("BRV", v)} onBlur={() => handleNumericBlur("BRV")} onDelta={(d) => handleDelta("BRV", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Status" value={form.STATUS} base={rulesSpec.base.STATUS} cost={rulesSpec.cost.STATUS} onChange={(v) => handleNumericChange("STATUS", v)} onBlur={() => handleNumericBlur("STATUS")} onDelta={(d) => handleDelta("STATUS", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Bravery" value={form.BRV} base={rulesSpec.base.BRV} cost={rulesSpec.cost.BRV} onChange={(v) => handleNumericChange("BRV", v)} onBlur={() => handleNumericBlur("BRV")} onDelta={(d) => handleDelta("BRV", d)} />
             <ReadSmall label="Move" value={form.MOVE ?? 8} />
             <ReadSmall label="Damage Bonus" value={form.damageBonus ?? "0"} />
-            <StatCell rulesSpec={rulesSpec} label="Armor" value={form.ARMOR} base={rulesSpec.base.ARMOR} usage={rulesSpec.usage.ARMOR} onChange={(v) => handleNumericChange("ARMOR", v)} onBlur={() => handleNumericBlur("ARMOR")} onDelta={(d) => handleDelta("ARMOR", d)} isSmallStep={true} />
-            <StatCell rulesSpec={rulesSpec} label="Resiliance" value={form.RES} base={rulesSpec.base.RES} usage={rulesSpec.usage.RES} onChange={(v) => handleNumericChange("RES", v)} onBlur={() => handleNumericBlur("RES")} onDelta={(d) => handleDelta("RES", d)} isSmallStep={true} />
+            <StatCell rulesSpec={rulesSpec} label="Armor" value={form.ARMOR} base={rulesSpec.base.ARMOR} cost={rulesSpec.cost.ARMOR} onChange={(v) => handleNumericChange("ARMOR", v)} onBlur={() => handleNumericBlur("ARMOR")} onDelta={(d) => handleDelta("ARMOR", d)} isSmallStep={true} />
+            <StatCell rulesSpec={rulesSpec} label="Resiliance" value={form.RES} base={rulesSpec.base.RES} cost={rulesSpec.cost.RES} onChange={(v) => handleNumericChange("RES", v)} onBlur={() => handleNumericBlur("RES")} onDelta={(d) => handleDelta("RES", d)} isSmallStep={true} />
             <ReadSmall label="Total XP" value={form.totalXP ?? 0} />
             <ReadSmall label="Used XP" value={form.usedXP ?? 0} />
+            <ReadSmall label="Level" value={form.level ?? 0} />
           </div>
+          <div className="sheet-divider" aria-hidden="true"></div>
 
           <form onSubmit={(e) => handleSubmit(e, false)} style={styles.form}>
             <div className="sheet-grid" style={styles.grid}>
               {FIELD_DEFS.map((def) => {
+                // Map frontend keys to backend keys
+                const skillKeyMap = {
+                  "ArtCraft": "Art Craft",
+                  "ArtCraft2": "Art Craft 2",
+                  "CreditRating": "Credit Rating",
+                  "CthulhuMythos": "Cthulhu Mythos",
+                  "DriveAuto": "Drive Auto",
+                  "ElectricalRepair": "Electrical Repair",
+                  "FastTalk": "Fast Talk",
+                  "FightingBrawl": "Fighting Brawl",
+                  "FightingOther": "Fighting Other",
+                  "FirearmsHandgun": "Firearms Handgun",
+                  "FirearmsOther": "Firearms Other",
+                  "FirearmsRifleShotgun": "Firearms Rifle Shotgun",
+                  "FirstAid": "First Aid",
+                  "LanguageOther1": "Language Other 1",
+                  "LanguageOther2": "Language Other 2",
+                  "LanguageOther3": "Language Other 3",
+                  "LanguageOwn": "Language Own",
+                  "LibraryUse": "Library Use",
+                  "MechanicalRepair": "Mechanical Repair",
+                  "NaturalWorld": "Natural World",
+                  "ScienceOther": "Science Other",
+                  "ScienceOther2": "Science Other 2",
+                  "SleightOfHand": "Sleight Of Hand",
+                  "Other1": "Other1",
+                  "Other2": "Other2",
+                  "Other3": "Other3"
+                };
+                
+                const backendKey = skillKeyMap[def.key] || def.key;
                 const value = form[def.key] ?? "";
-                const base = rulesSpec.base[def.key];
-                const usage = rulesSpec.usage[def.key];
+                const base = rulesSpec.base[backendKey];
+                const cost = rulesSpec.cost[backendKey];
                 const isNumber = def.type === "number";
                 const labelWithBase = base !== undefined ? `${def.label} ${base}` : def.label;
 
                 const numericValue = Number(value) || 0;
-                const currentCost = getCurrentCostPerPoint(rulesSpec, usage, numericValue);
-                const totalCost = isNumber && usage !== undefined ? getCostBetween(rulesSpec, def.key, base ?? 0, numericValue) : 0;
+                const currentCost = getCurrentCostPerPoint(rulesSpec, cost, numericValue);
+                const totalCost = isNumber && cost !== undefined ? getCostBetween(rulesSpec, backendKey, base ?? 0, numericValue) : 0;
                 const costColor = getCostColor(currentCost);
-                const tooltipText = isNumber && usage !== undefined ? `Spent: ${totalCost}` : "";
+                const tooltipText = isNumber && cost !== undefined ? `Spent: ${totalCost}` : "";
                 const deltaTooltipText = `${currentCost * 5} XP`;
 
                 const labelExtra =
-                  isNumber && (usage !== undefined)
+                  isNumber && (cost !== undefined)
                     ? ` (Cost: ${currentCost})`
                     : "";
                 const halfValue = Math.floor(numericValue / 2);
@@ -885,7 +1228,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                 onClick={onCancel}
                 disabled={isSubmitting}
               >
-                Geri dön
+                {t("playerForm.back")}
               </button>
 
               <button
@@ -894,7 +1237,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                 disabled={isSubmitting}
                 onClick={(e) => handleSubmit(e, false)}
               >
-                Kaydet ve geri dön
+                {t("playerForm.saveReturn")}
               </button>
 
               <button
@@ -903,7 +1246,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                 disabled={isSubmitting}
                 onClick={(e) => handleSubmit(e, true)}
               >
-                Kaydet ve sayfada kal
+                {t("playerForm.saveStay")}
               </button>
 
               {mode === "create" && (
@@ -912,7 +1255,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                   style={{ ...styles.button, background: "#0ea5e9" }}
                   onClick={() => window.print()}
                 >
-                  Yazdır
+                  {t("playerForm.print")}
                 </button>
               )}
 
@@ -921,8 +1264,91 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                 style={{ ...styles.button, background: "#8b5cf6" }}
                 onClick={handleExportJSON}
               >
-                JSON'a Aktar
+                {t("playerForm.exportJson")}
               </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#fafafa", color: "#000" }}
+                onClick={() => handleSetAll(10)}
+              >
+                All 10
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#f5f5f5", color: "#000" }}
+                onClick={() => handleSetAll(15)}
+              >
+                All 15
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#eeeeee", color: "#000" }}
+                onClick={() => handleSetAll(20)}
+              >
+                All 20
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#e0e0e0", color: "#000" }}
+                onClick={() => handleSetAll(25)}
+              >
+                All 25
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#d1d5db", color: "#000" }}
+                onClick={() => handleSetAll(30)}
+              >
+                All 30
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#9ca3af", color: "#000" }}
+                onClick={() => handleSetAll(35)}
+              >
+                All 35
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#6b7280", color: "#fff" }}
+                onClick={() => handleSetAll(40)}
+              >
+                All 40
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#374151", color: "#fff" }}
+                onClick={() => handleSetAll(45)}
+              >
+                All 45
+              </button>
+
+              <button
+                type="button"
+                style={{ ...styles.button, background: "#1f2937", color: "#fff" }}
+                onClick={() => handleSetAll(50)}
+              >
+                All 50
+              </button>
+
+              {mode !== "create" && (
+                <button
+                  type="button"
+                  style={{ ...styles.button, background: "#ef4444", color: "#fff" }}
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                >
+                  {t("playerForm.delete")}
+                </button>
+              )}
             </div>
           </form>
         </div>
@@ -936,6 +1362,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
+    paddingBottom: "10px",
   },
   mainContainer: {
     display: "flex",
@@ -1010,6 +1437,7 @@ const styles = {
     background: "#ffffffff",
     borderRadius: "0.75rem",
     border: "1px solid #000000ff",
+    marginLeft: "1rem",
   },
   field: {
     display: "flex",
@@ -1023,6 +1451,9 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     gap: "0.24rem",
+    marginTop: "1px",
+    marginLeft: "10px",
+    marginRight: "10px",
   },
   labelText: {
     color: "#4b5563",
@@ -1132,7 +1563,8 @@ const styles = {
     border: "1px solid #111",
     borderRadius: "8px",
     padding: "8px",
-    marginBottom: "8px",
+    margin: "15px",
+    marginBottom: "12px",
     alignItems: "stretch",
   },
   cell: {

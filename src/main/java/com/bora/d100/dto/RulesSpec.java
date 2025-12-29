@@ -16,23 +16,29 @@ public class RulesSpec {
     private Map<String, Integer> base;
 
     /**
-     * Usage costs - how many XP points are needed to increase a characteristic or skill by 1.
+     * Cost per point - how many XP points are needed to increase a characteristic or skill by 1.
      * Example: "APP": 60 means it costs 60 XP to increase APP by 1 point.
      */
-    private Map<String, Integer> usage;
+    private Map<String, Integer> cost;
 
     /**
      * Penalty thresholds and multipliers for difficulty scaling.
      */
     private PenaltyRules penaltyRules;
 
+    /**
+     * Level calculation rules.
+     */
+    private LevelRules levelRules;
+
     public RulesSpec() {
     }
 
-    public RulesSpec(Map<String, Integer> base, Map<String, Integer> usage, PenaltyRules penaltyRules) {
+    public RulesSpec(Map<String, Integer> base, Map<String, Integer> cost, PenaltyRules penaltyRules, LevelRules levelRules) {
         this.base = base;
-        this.usage = usage;
+        this.cost = cost;
         this.penaltyRules = penaltyRules;
+        this.levelRules = levelRules;
     }
 
     public Map<String, Integer> getBase() {
@@ -43,12 +49,12 @@ public class RulesSpec {
         this.base = base;
     }
 
-    public Map<String, Integer> getUsage() {
-        return usage;
+    public Map<String, Integer> getCost() {
+        return cost;
     }
 
-    public void setUsage(Map<String, Integer> usage) {
-        this.usage = usage;
+    public void setCost(Map<String, Integer> cost) {
+        this.cost = cost;
     }
 
     public PenaltyRules getPenaltyRules() {
@@ -59,13 +65,21 @@ public class RulesSpec {
         this.penaltyRules = penaltyRules;
     }
 
+    public LevelRules getLevelRules() {
+        return levelRules;
+    }
+
+    public void setLevelRules(LevelRules levelRules) {
+        this.levelRules = levelRules;
+    }
+
     /**
      * Nested class for penalty threshold rules.
      * Supports multiple penalty levels with thresholds and multipliers.
      */
     public static class PenaltyRules {
         private List<Integer> thresholds;      // [40, 50, 60, 70, 80]
-        private List<Double> multipliers;      // [1.5, 2.0, 3.0, 4.0, 6.0]
+        private List<Double> multipliers;      // [1.5, 2.0, 3.0, 4.0, 5.0]
 
         public PenaltyRules() {
         }
@@ -108,6 +122,51 @@ public class RulesSpec {
                 }
             }
             return 1.0; // Default multiplier if below first threshold
+        }
+    }
+
+    /**
+     * Nested class for level calculation rules.
+     * Level = (UsedXP - baseXP) / xpPerLevel
+     * Example: Level = (UsedXP - 100000) / 10000
+     */
+    public static class LevelRules {
+        private int baseXP;        // Starting XP threshold (e.g., 100000)
+        private int xpPerLevel;    // XP needed per level (e.g., 10000)
+
+        public LevelRules() {
+        }
+
+        public LevelRules(int baseXP, int xpPerLevel) {
+            this.baseXP = baseXP;
+            this.xpPerLevel = xpPerLevel;
+        }
+
+        public int getBaseXP() {
+            return baseXP;
+        }
+
+        public void setBaseXP(int baseXP) {
+            this.baseXP = baseXP;
+        }
+
+        public int getXpPerLevel() {
+            return xpPerLevel;
+        }
+
+        public void setXpPerLevel(int xpPerLevel) {
+            this.xpPerLevel = xpPerLevel;
+        }
+
+        /**
+         * Calculate the level based on used XP.
+         * Level = (usedXP - baseXP) / xpPerLevel
+         * Minimum level is always 1.
+         * Example: 100000 XP = lvl 1, 105000 XP = lvl 1, 115000 XP = lvl 1, 125000 XP = lvl 2
+         */
+        public int calculateLevel(int usedXP) {
+            int level = (usedXP - baseXP) / xpPerLevel;
+            return Math.max(1, level);
         }
     }
 }

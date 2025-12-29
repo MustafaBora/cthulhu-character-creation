@@ -28,9 +28,9 @@ public class CostService {
             Map.entry("EDU", 20),
             Map.entry("INT", 30),
             Map.entry("LUCK", 35),
-            Map.entry("PER", 0),
-            Map.entry("POW", 30),
-            Map.entry("REP", 1),
+            Map.entry("SENSE", 0),
+            Map.entry("WILL", 30),
+            Map.entry("STATUS", 1),
             Map.entry("SAN", 45),
             Map.entry("SIZ", 31),
             Map.entry("STR", 25),
@@ -104,9 +104,9 @@ public class CostService {
             Map.entry("EDU", 46),
             Map.entry("INT", 14),
             Map.entry("LUCK", 3),
-            Map.entry("PER", 5),
-            Map.entry("POW", 5),
-            Map.entry("REP", 14),
+            Map.entry("SENSE", 5),
+            Map.entry("WILL", 5),
+            Map.entry("STATUS", 14),
             Map.entry("SAN", 3),
             Map.entry("SIZ", 19),
             Map.entry("STR", 11),
@@ -221,9 +221,9 @@ public class CostService {
         int EDU = getCostFromBase("EDU", player.getEDU());
         int INT = getCostFromBase("INT", player.getINT());
         int LUCK = getCostFromBase("LUCK", player.getLUCK());
-        int PER = getCostFromBase("PER", player.getPER());
-        int POW = getCostFromBase("POW", player.getPOW());
-        int REP = getCostFromBase("REP", player.getREP());
+        int SENSE = getCostFromBase("SENSE", player.getSENSE());
+        int WILL = getCostFromBase("WILL", player.getWILL());
+        int STATUS = getCostFromBase("STATUS", player.getSTATUS());
         int SAN = getCostFromBase("SAN", player.getSAN());
         int SIZ = getCostFromBase("SIZ", player.getSIZ());
         int STR = getCostFromBase("STR", player.getSTR());
@@ -285,7 +285,7 @@ public class CostService {
 
         // TOTAL
         int totalCost =
-                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + PER + POW + REP + SAN + SIZ + STR + ARMOR + RES +
+                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + SENSE + WILL + STATUS + SAN + SIZ + STR + ARMOR + RES +
                         Accounting + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Charm + Climb +
                         CreditRating + CthulhuMythos + Disguise + Dodge + DriveAuto + ElectricalRepair + FastTalk +
                         FightingBrawl + FightingOther + FirearmsHandgun + FirearmsOther + FirearmsRifle +
