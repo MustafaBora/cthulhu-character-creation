@@ -31,32 +31,33 @@ public class JwtAuthenticationFilter implements Filter
     {
         HttpServletRequest request = (HttpServletRequest) req;
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer "))
-        {
-            String token = header.substring(7);
-
-            if (jwtUtils.isValid(token))
-            {
-                String email = jwtUtils.getSubject(token);
-                User user = userRepository.findByEmail(email);
-
-                if (user != null)
-                {
-                    // Build Spring Security authority from user's role
-                    var authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
-
-                    // Store authenticated user in Spring Security context
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(
-                                    user,
-                                    null,
-                                    List.of(authority)
-                            );
-
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                }
-            }
-        }
+        // Temporarily skip JWT validation while frontend login is disabled
+        // if (header != null && header.startsWith("Bearer "))
+        // {
+        //     String token = header.substring(7);
+        //
+        //     if (jwtUtils.isValid(token))
+        //     {
+        //         String email = jwtUtils.getSubject(token);
+        //         User user = userRepository.findByEmail(email);
+        //
+        //         if (user != null)
+        //         {
+        //             // Build Spring Security authority from user's role
+        //             var authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
+        //
+        //             // Store authenticated user in Spring Security context
+        //             UsernamePasswordAuthenticationToken auth =
+        //                     new UsernamePasswordAuthenticationToken(
+        //                             user,
+        //                             null,
+        //                             List.of(authority)
+        //                     );
+        //
+        //             SecurityContextHolder.getContext().setAuthentication(auth);
+        //         }
+        //     }
+        // }
 
         chain.doFilter(req, res);
     }

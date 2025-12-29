@@ -31,15 +31,18 @@ public class SecurityConfig
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception
     {
 
-        http.csrf(csrf -> csrf.disable())             // Disable CSRF for JWT-based APIs
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/players/**").permitAll()
-                        .requestMatchers("/players/**").hasAnyRole("USER", "ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .authorizeHttpRequests(auth -> auth
+                // Temporarily allow everything while frontend login is disabled
+                // .requestMatchers("/auth/**").permitAll()
+                // .requestMatchers(HttpMethod.GET, "/players/**").permitAll()
+                // .requestMatchers("/players/**").hasAnyRole("USER", "ADMIN")
+                .anyRequest().permitAll()
+            )
+            // Temporarily disable JWT filter while frontend login is off
+            // .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            ;
 
         return http.build();
     }

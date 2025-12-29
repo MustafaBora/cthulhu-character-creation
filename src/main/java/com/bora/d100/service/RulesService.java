@@ -26,7 +26,7 @@ public class RulesService {
      */
     private RulesSpec initializeRulesSpec() {
         Map<String, Integer> base = Map.<String, Integer>ofEntries(
-                Map.entry("totalXP", 100000),
+                Map.entry("totalXP", 200000),
                 Map.entry("usedXP", 0),
                 Map.entry("remainingXP", 0),
 
