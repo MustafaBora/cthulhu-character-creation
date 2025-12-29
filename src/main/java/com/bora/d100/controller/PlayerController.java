@@ -56,7 +56,7 @@ public class PlayerController
     public ResponseEntity<?> createPlayer(
             @Valid @RequestBody Player/*RequestDTO dto*/ player,
             @AuthenticationPrincipal User user ) {
-        if (user == null)  throw new InvalidTokenException("Missing or invalid token");
+        //if (user == null)  throw new InvalidTokenException("Missing or invalid token");
         Player/*ResponseDTO*/ created = playerService.createPlayer(player, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -66,7 +66,7 @@ public class PlayerController
             @PathVariable Long id,
             @Valid @RequestBody Player/*RequestDTO dto*/ player,
             @AuthenticationPrincipal User user ) {
-        if (user == null) throw new InvalidTokenException("Missing or invalid token");
+        //if (user == null) throw new InvalidTokenException("Missing or invalid token");
         Player/*ResponseDTO*/ updated = playerService.updatePlayer(id, player, user);
         return ResponseEntity.ok(updated);
     }
@@ -77,7 +77,7 @@ public class PlayerController
             @AuthenticationPrincipal User user
     )
     {
-        if (user == null) throw new InvalidTokenException("Missing or invalid token");
+        //if (user == null) throw new InvalidTokenException("Missing or invalid token");
         playerService.deletePlayer(id, user);
         return ResponseEntity.ok("Player deleted successfully");
     }
