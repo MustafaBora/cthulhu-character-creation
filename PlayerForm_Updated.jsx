@@ -70,6 +70,8 @@ const FIELD_DEFS = [
   { key: "Science", label: "Science", type: "number" },
   { key: "ScienceOther", label: "SO", type: "number" },
   { key: "ScienceOther2", label: "SO2", type: "number" },
+  { key: "SignLanguage", label: "Sign Language", type: "number" },
+  { key: "Deception", label: "Deception", type: "number" },
   { key: "SleightOfHand", label: "Sleight of Hand", type: "number" },
   { key: "Stealth", label: "Stealth", type: "number" },
   { key: "Survival", label: "Survival", type: "number" },
@@ -259,7 +261,7 @@ function computeUsedXP(rulesSpec, values) {
     "Language Other 3", "Language Own", "Law", "Library Use", "Listen", "Locksmith",
     "Mechanical Repair", "Medicine", "Natural World", "Navigate", "Occult", "Operate Heavy Machinery", "Persuade",
     "Pilot", "Psychoanalysis", "Psychology", "Read Lips", "Ride", "Science", "Science Other",
-    "Science Other 2", "Sleight Of Hand", "Stealth", "Survival", "Swim", "Throw", "Track",
+    "Science Other 2", "Sign Language", "Deception", "Sleight Of Hand", "Stealth", "Survival", "Swim", "Throw", "Track",
     "Uncommon Language", "Other1", "Other2", "Other3"
   ];
   console.log("--- Skills ---");
@@ -296,6 +298,8 @@ function computeUsedXP(rulesSpec, values) {
     "ReadLips": "Read Lips",
     "ScienceOther": "Science Other",
     "ScienceOther2": "Science Other 2",
+    "SignLanguage": "Sign Language",
+    "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
     "UncommonLanguage": "Uncommon Language",
     "Other1": "Other1",
@@ -412,6 +416,8 @@ function clampStat(rulesSpec, num, fieldName) {
     "ReadLips": "Read Lips",
     "ScienceOther": "Science Other",
     "ScienceOther2": "Science Other 2",
+    "SignLanguage": "Sign Language",
+    "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
     "UncommonLanguage": "Uncommon Language"
   };
@@ -462,6 +468,8 @@ function getInitialForm(rulesSpec, mode, player) {
     "ReadLips": "Read Lips",
     "ScienceOther": "Science Other",
     "ScienceOther2": "Science Other 2",
+    "SignLanguage": "Sign Language",
+    "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
     "UncommonLanguage": "Uncommon Language"
   };
@@ -1242,6 +1250,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                   "ReadLips": "Read Lips",
                   "ScienceOther": "Science Other",
                   "ScienceOther2": "Science Other 2",
+                  "SignLanguage": "Sign Language",
+                  "Deception": "Deception",
                   "SleightOfHand": "Sleight Of Hand",
                   "UncommonLanguage": "Uncommon Language",
                   "Other1": "Other1",
