@@ -33,6 +33,24 @@ public class Player {
     private String pronoun;
     private String occupation;
     private String residence;
+    @Lob
+    private String bagSurface;
+    @Lob
+    private String significantPeople;
+    @Lob
+    private String injuriesScarsPhobiesManias;
+    @Lob
+    private String bagMiddle;
+    @Lob
+    private String treasuredPossesions;
+    @Lob
+    private String arcaneTomesSpellsArtifacts;
+    @Lob
+    private String bagDeep;
+    @Lob
+    private String meaningfulLocations;
+    @Lob
+    private String encountersWithStrangeEntities;
     private int age;
     private int totalXP;
 
@@ -322,6 +340,15 @@ public class Player {
         this.pronoun = other.getPronoun();
         this.occupation = other.getOccupation();
         this.residence = other.getResidence();
+        this.bagSurface = other.getBagSurface();
+        this.significantPeople = other.getSignificantPeople();
+        this.injuriesScarsPhobiesManias = other.getInjuriesScarsPhobiesManias();
+        this.bagMiddle = other.getBagMiddle();
+        this.treasuredPossesions = other.getTreasuredPossesions();
+        this.arcaneTomesSpellsArtifacts = other.getArcaneTomesSpellsArtifacts();
+        this.bagDeep = other.getBagDeep();
+        this.meaningfulLocations = other.getMeaningfulLocations();
+        this.encountersWithStrangeEntities = other.getEncountersWithStrangeEntities();
         this.age = other.getAge();
 
         // --- Progress / derived-ish fields ---
