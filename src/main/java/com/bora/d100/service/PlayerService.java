@@ -62,9 +62,9 @@ public class PlayerService {
         Player existing = playerRepository.findById(id)
                 .orElseThrow(() -> new PlayerNotFoundException(id));
 
-        if (!existing.getUser().getId().equals(user.getId())) {
+        /*if (!existing.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("You cannot edit someone else's player");
-        }
+        }*/
 
         existing.setValuesFromAnother(incoming);
 
@@ -81,10 +81,10 @@ public class PlayerService {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFoundException(playerId));
 
-        if (user.getRole() == Role.USER &&
+/*        if (user.getRole() == Role.USER &&
                 !player.getUser().getId().equals(user.getId())) {
             throw new IllegalArgumentException("You do not own this player");
-        }
+        }*/
 
         playerRepository.delete(player);
     }
