@@ -133,6 +133,8 @@ public class Player {
     private int Science;
     private int ScienceOther;
     private int ScienceOther2;
+    private int SignLanguage;
+    private int Deception;
     private int SleightOfHand;
     private int SPOT;
     private int Stealth;
@@ -222,6 +224,8 @@ public class Player {
             case "Science": return Science;
             case "ScienceOther": return ScienceOther;
             case "ScienceOther2": return ScienceOther2;
+            case "SignLanguage": return SignLanguage;
+            case "Deception": return Deception;
             case "SleightOfHand": return SleightOfHand;
             case "SPOT": return SPOT;
             case "Stealth": return Stealth;
@@ -310,6 +314,8 @@ public class Player {
             case "Science": Science = value; break;
             case "ScienceOther": ScienceOther = value; break;
             case "ScienceOther2": ScienceOther2 = value; break;
+            case "SignLanguage": SignLanguage = value; break;
+            case "Deception": Deception = value; break;
             case "SleightOfHand": SleightOfHand = value; break;
             case "SPOT": SPOT = value; break;
             case "Stealth": Stealth = value; break;
@@ -404,15 +410,14 @@ public class Player {
     }
 
         private static final String[] SKILLS = {
-            "Accounting","Anthropology","Appraise","Archeology","ArtCraft","ArtCraft2",
-            "Charm","Climb","CreditRating","CthulhuMythos","Disguise","Dodge","DriveAuto",
-            "ElectricalRepair","FastTalk","FightingBrawl","FightingOther","FirearmsHandgun",
-            "FirearmsOther","FirearmsRifleShotgun","FirstAid","History",
-            "Intimidate","Jump","LanguageOther1","LanguageOther2","LanguageOther3","LanguageOwn",
-            "Law","LibraryUse","Listen","Locksmith","MechanicalRepair","Medicine","NaturalWorld",
-            "Navigate","Occult","Persuade","Pilot","Psychoanalysis","Psychology","Ride","Science",
-            "ScienceOther","ScienceOther2","SleightOfHand","Stealth","Survival",
-            "Swim","Throw","Track","Other1","Other2","Other3"
+            "Accounting","AnimalHandling","Anthropology","Appraise","Archeology","ArtCraft","ArtCraft2",
+            "Artillery","Charm","Climb","ComputerUse","CreditRating","CthulhuMythos","Demolitions",
+            "Disguise","Dodge","DriveAuto","Electronics","ElectricalRepair","FastTalk","FightingBrawl","FightingOther",
+            "FirearmsHandgun","FirearmsOther","FirearmsRifleShotgun","FirstAid","History","Hypnosis","Intimidate","Jump",
+            "LanguageOther1","LanguageOther2","LanguageOther3","LanguageOwn","Law","LibraryUse","Listen","Locksmith",
+            "MechanicalRepair","Medicine","NaturalWorld","Navigate","Occult","OperateHeavyMachinery","Persuade","Pilot",
+            "Psychoanalysis","Psychology","ReadLips","Ride","Science","ScienceOther","ScienceOther2","SignLanguage","Deception",
+            "SleightOfHand","Stealth","Survival","Swim","Throw","Track","UncommonLanguage","Other1","Other2","Other3"
     };
 
         private static final String[] CHARACTERISTICS = {

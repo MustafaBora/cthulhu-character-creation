@@ -132,18 +132,23 @@ public class CostServiceByUsage {
 
         // Skills
         int Accounting = getCostBetween("Accounting", rulesService.getBaseValue("Accounting"), player.getAccounting());
+        int AnimalHandling = getCostBetween("Animal Handling", rulesService.getBaseValue("Animal Handling"), player.getAnimalHandling());
         int Anthropology = getCostBetween("Anthropology", rulesService.getBaseValue("Anthropology"), player.getAnthropology());
         int Appraise = getCostBetween("Appraise", rulesService.getBaseValue("Appraise"), player.getAppraise());
         int Archeology = getCostBetween("Archeology", rulesService.getBaseValue("Archeology"), player.getArcheology());
         int ArtCraft = getCostBetween("Art Craft", rulesService.getBaseValue("Art Craft"), player.getArtCraft());
         int ArtCraft2 = getCostBetween("Art Craft 2", rulesService.getBaseValue("Art Craft 2"), player.getArtCraft2());
+        int Artillery = getCostBetween("Artillery", rulesService.getBaseValue("Artillery"), player.getArtillery());
         int Charm = getCostBetween("Charm", rulesService.getBaseValue("Charm"), player.getCharm());
         int Climb = getCostBetween("Climb", rulesService.getBaseValue("Climb"), player.getClimb());
+        int ComputerUse = getCostBetween("Computer Use", rulesService.getBaseValue("Computer Use"), player.getComputerUse());
         int CreditRating = getCostBetween("Credit Rating", rulesService.getBaseValue("Credit Rating"), player.getCreditRating());
         int CthulhuMythos = getCostBetween("Cthulhu Mythos", rulesService.getBaseValue("Cthulhu Mythos"), player.getCthulhuMythos());
+        int Demolitions = getCostBetween("Demolitions", rulesService.getBaseValue("Demolitions"), player.getDemolitions());
         int Disguise = getCostBetween("Disguise", rulesService.getBaseValue("Disguise"), player.getDisguise());
         int Dodge = getCostBetween("Dodge", rulesService.getBaseValue("Dodge"), player.getDodge());
         int DriveAuto = getCostBetween("Drive Auto", rulesService.getBaseValue("Drive Auto"), player.getDriveAuto());
+        int Electronics = getCostBetween("Electronics", rulesService.getBaseValue("Electronics"), player.getElectronics());
         int ElectricalRepair = getCostBetween("Electrical Repair", rulesService.getBaseValue("Electrical Repair"), player.getElectricalRepair());
         int FastTalk = getCostBetween("Fast Talk", rulesService.getBaseValue("Fast Talk"), player.getFastTalk());
         int FightingBrawl = getCostBetween("Fighting Brawl", rulesService.getBaseValue("Fighting Brawl"), player.getFightingBrawl());
@@ -153,6 +158,7 @@ public class CostServiceByUsage {
         int FirearmsRifle = getCostBetween("Firearms Rifle Shotgun", rulesService.getBaseValue("Firearms Rifle Shotgun"), player.getFirearmsRifleShotgun());
         int FirstAid = getCostBetween("First Aid", rulesService.getBaseValue("First Aid"), player.getFirstAid());
         int History = getCostBetween("History", rulesService.getBaseValue("History"), player.getHistory());
+        int Hypnosis = getCostBetween("Hypnosis", rulesService.getBaseValue("Hypnosis"), player.getHypnosis());
         int Intimidate = getCostBetween("Intimidate", rulesService.getBaseValue("Intimidate"), player.getIntimidate());
         int Jump = getCostBetween("Jump", rulesService.getBaseValue("Jump"), player.getJump());
         int LanguageOther1 = getCostBetween("Language Other 1", rulesService.getBaseValue("Language Other 1"), player.getLanguageOther1());
@@ -168,14 +174,18 @@ public class CostServiceByUsage {
         int NaturalWorld = getCostBetween("Natural World", rulesService.getBaseValue("Natural World"), player.getNaturalWorld());
         int Navigate = getCostBetween("Navigate", rulesService.getBaseValue("Navigate"), player.getNavigate());
         int Occult = getCostBetween("Occult", rulesService.getBaseValue("Occult"), player.getOccult());
+        int OperateHeavyMachinery = getCostBetween("Operate Heavy Machinery", rulesService.getBaseValue("Operate Heavy Machinery"), player.getOperateHeavyMachinery());
         int Persuade = getCostBetween("Persuade", rulesService.getBaseValue("Persuade"), player.getPersuade());
         int Pilot = getCostBetween("Pilot", rulesService.getBaseValue("Pilot"), player.getPilot());
         int Psychoanalysis = getCostBetween("Psychoanalysis", rulesService.getBaseValue("Psychoanalysis"), player.getPsychoanalysis());
         int Psychology = getCostBetween("Psychology", rulesService.getBaseValue("Psychology"), player.getPsychology());
+        int ReadLips = getCostBetween("Read Lips", rulesService.getBaseValue("Read Lips"), player.getReadLips());
         int Ride = getCostBetween("Ride", rulesService.getBaseValue("Ride"), player.getRide());
         int Science = getCostBetween("Science", rulesService.getBaseValue("Science"), player.getScience());
         int ScienceOther = getCostBetween("Science Other", rulesService.getBaseValue("Science Other"), player.getScienceOther());
         int ScienceOther2 = getCostBetween("Science Other 2", rulesService.getBaseValue("Science Other 2"), player.getScienceOther2());
+        int SignLanguage = getCostBetween("Sign Language", rulesService.getBaseValue("Sign Language"), player.getSignLanguage());
+        int Deception = getCostBetween("Deception", rulesService.getBaseValue("Deception"), player.getDeception());
         int SleightOfHand = getCostBetween("Sleight Of Hand", rulesService.getBaseValue("Sleight Of Hand"), player.getSleightOfHand());
         int SPOT = getCostBetween("SPOT", rulesService.getBaseValue("SPOT"), player.getSPOT());
         int Stealth = getCostBetween("Stealth", rulesService.getBaseValue("Stealth"), player.getStealth());
@@ -186,18 +196,19 @@ public class CostServiceByUsage {
         int Other1 = getCostBetween("Other1", rulesService.getBaseValue("Other1"), player.getOther1());
         int Other2 = getCostBetween("Other2", rulesService.getBaseValue("Other2"), player.getOther2());
         int Other3 = getCostBetween("Other3", rulesService.getBaseValue("Other3"), player.getOther3());
+        int UncommonLanguage = getCostBetween("Uncommon Language", rulesService.getBaseValue("Uncommon Language"), player.getUncommonLanguage());
 
         // TOPLAM - SPOT is a characteristic, not a skill
         int totalCost =
                 APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + SENSE + WILL + STATUS + SAN + SIZ + STR + ARMOR + RES + SPOT +
-                        Accounting + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Charm + Climb +
-                        CreditRating + CthulhuMythos + Disguise + Dodge + DriveAuto + ElectricalRepair + FastTalk +
+                    Accounting + AnimalHandling + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Artillery + Charm + Climb +
+                    ComputerUse + CreditRating + CthulhuMythos + Demolitions + Disguise + Dodge + DriveAuto + Electronics + ElectricalRepair + FastTalk +
                         FightingBrawl + FightingOther + FirearmsHandgun + FirearmsOther + FirearmsRifle +
-                        FirstAid + History + Intimidate + Jump + LanguageOther1 + LanguageOther2 + LanguageOther3 +
-                        LanguageOwn + Law + LibraryUse + Listen + Locksmith + MechanicalRepair + Medicine +
-                        NaturalWorld + Navigate + Occult + Persuade + Pilot + Psychoanalysis + Psychology + Ride +
-                        Science + ScienceOther + ScienceOther2 + SleightOfHand + Stealth + Survival +
-                        Swim + ThrowSkill + Track + Other1 + Other2 + Other3;
+                    FirstAid + History + Hypnosis + Intimidate + Jump + LanguageOther1 + LanguageOther2 + LanguageOther3 +
+                    LanguageOwn + Law + LibraryUse + Listen + Locksmith + MechanicalRepair + Medicine +
+                        NaturalWorld + Navigate + Occult + OperateHeavyMachinery + Persuade + Pilot + Psychoanalysis + Psychology + ReadLips + Ride +
+                        Science + ScienceOther + ScienceOther2 + SignLanguage + Deception + SleightOfHand + Stealth + Survival +
+                        Swim + ThrowSkill + Track + UncommonLanguage + Other1 + Other2 + Other3;
         
         if(player.getUsedXP() != totalCost) {
             throw new XPCalculationMismatchException(totalCost, player.getUsedXP());

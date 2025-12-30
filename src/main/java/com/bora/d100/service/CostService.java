@@ -231,18 +231,23 @@ public class CostService {
         int RES = getCostFromBase("RES", player.getRES());
 
         int Accounting = getCostFromBase("Accounting", player.getAccounting());
+        int AnimalHandling = getCostFromBase("Animal Handling", player.getAnimalHandling());
         int Anthropology = getCostFromBase("Anthropology", player.getAnthropology());
         int Appraise = getCostFromBase("Appraise", player.getAppraise());
         int Archeology = getCostFromBase("Archeology", player.getArcheology());
         int ArtCraft = getCostFromBase("Art Craft", player.getArtCraft());
         int ArtCraft2 = getCostFromBase("Art Craft 2", player.getArtCraft2());
+        int Artillery = getCostFromBase("Artillery", player.getArtillery());
         int Charm = getCostFromBase("Charm", player.getCharm());
         int Climb = getCostFromBase("Climb", player.getClimb());
+        int ComputerUse = getCostFromBase("Computer Use", player.getComputerUse());
         int CreditRating = getCostFromBase("Credit Rating", player.getCreditRating());
         int CthulhuMythos = getCostFromBase("Cthulhu Mythos", player.getCthulhuMythos());
+        int Demolitions = getCostFromBase("Demolitions", player.getDemolitions());
         int Disguise = getCostFromBase("Disguise", player.getDisguise());
         int Dodge = getCostFromBase("Dodge", player.getDodge());
         int DriveAuto = getCostFromBase("Drive Auto", player.getDriveAuto());
+        int Electronics = getCostFromBase("Electronics", player.getElectronics());
         int ElectricalRepair = getCostFromBase("Electrical Repair", player.getElectricalRepair());
         int FastTalk = getCostFromBase("Fast Talk", player.getFastTalk());
         int FightingBrawl = getCostFromBase("Fighting Brawl", player.getFightingBrawl());
@@ -252,6 +257,7 @@ public class CostService {
         int FirearmsRifle = getCostFromBase("Firearms Rifle Shotgun", player.getFirearmsRifleShotgun());
         int FirstAid = getCostFromBase("First Aid", player.getFirstAid());
         int History = getCostFromBase("History", player.getHistory());
+        int Hypnosis = getCostFromBase("Hypnosis", player.getHypnosis());
         int Intimidate = getCostFromBase("Intimidate", player.getIntimidate());
         int Jump = getCostFromBase("Jump", player.getJump());
         int LanguageOther1 = getCostFromBase("Language Other 1", player.getLanguageOther1());
@@ -267,14 +273,18 @@ public class CostService {
         int NaturalWorld = getCostFromBase("Natural World", player.getNaturalWorld());
         int Navigate = getCostFromBase("Navigate", player.getNavigate());
         int Occult = getCostFromBase("Occult", player.getOccult());
+        int OperateHeavyMachinery = getCostFromBase("Operate Heavy Machinery", player.getOperateHeavyMachinery());
         int Persuade = getCostFromBase("Persuade", player.getPersuade());
         int Pilot = getCostFromBase("Pilot", player.getPilot());
         int Psychoanalysis = getCostFromBase("Psychoanalysis", player.getPsychoanalysis());
         int Psychology = getCostFromBase("Psychology", player.getPsychology());
+        int ReadLips = getCostFromBase("Read Lips", player.getReadLips());
         int Ride = getCostFromBase("Ride", player.getRide());
         int Science = getCostFromBase("Science", player.getScience());
         int ScienceOther = getCostFromBase("Science Other", player.getScienceOther());
         int ScienceOther2 = getCostFromBase("Science Other 2", player.getScienceOther2());
+        int SignLanguage = getCostFromBase("Sign Language", player.getSignLanguage());
+        int Deception = getCostFromBase("Deception", player.getDeception());
         int SleightOfHand = getCostFromBase("Sleight Of Hand", player.getSleightOfHand());
         int SPOT = getCostFromBase("SPOT", player.getSPOT());
         int Stealth = getCostFromBase("Stealth", player.getStealth());
@@ -282,18 +292,22 @@ public class CostService {
         int Swim = getCostFromBase("Swim", player.getSwim());
         int ThrowSkill = getCostFromBase("Throw", player.getThrow());
         int Track = getCostFromBase("Track", player.getTrack());
+        int UncommonLanguage = getCostFromBase("Uncommon Language", player.getUncommonLanguage());
+        int Other1 = getCostFromBase("Other1", player.getOther1());
+        int Other2 = getCostFromBase("Other2", player.getOther2());
+        int Other3 = getCostFromBase("Other3", player.getOther3());
 
         // TOTAL
         int totalCost =
                 APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + SENSE + WILL + STATUS + SAN + SIZ + STR + ARMOR + RES +
-                        Accounting + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Charm + Climb +
-                        CreditRating + CthulhuMythos + Disguise + Dodge + DriveAuto + ElectricalRepair + FastTalk +
-                        FightingBrawl + FightingOther + FirearmsHandgun + FirearmsOther + FirearmsRifle +
-                        FirstAid + History + Intimidate + Jump + LanguageOther1 + LanguageOther2 + LanguageOther3 +
-                        LanguageOwn + Law + LibraryUse + Listen + Locksmith + MechanicalRepair + Medicine +
-                        NaturalWorld + Navigate + Occult + Persuade + Pilot + Psychoanalysis + Psychology + Ride +
-                        Science + ScienceOther + ScienceOther2 + SleightOfHand + SPOT + Stealth + Survival +
-                        Swim + ThrowSkill + Track;
+                Accounting + AnimalHandling + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Artillery + Charm + Climb +
+                ComputerUse + CreditRating + CthulhuMythos + Demolitions + Disguise + Dodge + DriveAuto + Electronics + ElectricalRepair + FastTalk +
+                FightingBrawl + FightingOther + FirearmsHandgun + FirearmsOther + FirearmsRifle +
+                FirstAid + History + Hypnosis + Intimidate + Jump + LanguageOther1 + LanguageOther2 + LanguageOther3 +
+                LanguageOwn + Law + LibraryUse + Listen + Locksmith + MechanicalRepair + Medicine +
+                NaturalWorld + Navigate + Occult + OperateHeavyMachinery + Persuade + Pilot + Psychoanalysis + Psychology + ReadLips + Ride +
+                Science + ScienceOther + ScienceOther2 + SignLanguage + Deception + SleightOfHand + SPOT + Stealth + Survival +
+                Swim + ThrowSkill + Track + UncommonLanguage + Other1 + Other2 + Other3;
         player.setUsedXP(totalCost);
         player.setRemainingXP(player.getTotalXP() - totalCost);
         return player;
