@@ -416,7 +416,7 @@ function clampStat(rulesSpec, num, fieldName) {
     "ReadLips": "Read Lips",
     "ScienceOther": "Science Other",
     "ScienceOther2": "Science Other 2",
-    "SignLanguage": "Sign Language",
+    "SleightOfHand": "Sleight Of Hand",
     "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
     "UncommonLanguage": "Uncommon Language"
