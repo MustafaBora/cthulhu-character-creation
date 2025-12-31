@@ -9,6 +9,7 @@ import cornerTR from "./assets/signs-2.png";
 import cornerBL from "./assets/signs-3.png";
 import cornerBR from "./assets/signs-4.png";
 import LanguageSwitcher from "./LanguageSwitcher";
+import "./PlayerForm.css";
 
 /**
  * Updated PlayerForm.jsx to use backend RulesSpec with multi-level penalties
@@ -37,7 +38,7 @@ const FIELD_DEFS = [
   { key: "Electronics", label: "Electronics", type: "number" },
   { key: "ElectricalRepair", label: "Electrical Repair", type: "number" },
   { key: "FastTalk", label: "Fast Talk", type: "number" },
-  { key: "FightingBrawl", label: "Fighting (Brawl)", type: "number" },
+  { key: "FightingBrawl", label: "Fighting Brawl", type: "number" },
   { key: "FightingOther", label: "FO", type: "number" },
   { key: "FirearmsHandgun", label: "Firearms Handgun", type: "number" },
   { key: "FirearmsOther", label: "FA-O", type: "number" },
@@ -50,7 +51,7 @@ const FIELD_DEFS = [
   { key: "LanguageOther1", label: "LO1", type: "number" },
   { key: "LanguageOther2", label: "LO2", type: "number" },
   { key: "LanguageOther3", label: "LO3", type: "number" },
-  { key: "LanguageOwn", label: "Language (Own)", type: "number" },
+  { key: "LanguageOwn", label: "Language", type: "number" },
   { key: "Law", label: "Law", type: "number" },
   { key: "LibraryUse", label: "Library Use", type: "number" },
   { key: "Listen", label: "Listen", type: "number" },
@@ -83,6 +84,31 @@ const FIELD_DEFS = [
   { key: "Other2", label: "O2", type: "number" },
   { key: "Other3", label: "O3", type: "number" },
 ];
+
+// Skills that must always remain visible in print, regardless of value
+const MUST_HAVE_SKILLS = new Set([
+  "Climb",
+  "CthulhuMythos",
+  "Dodge",
+  "LanguageOwn",
+  "Listen",
+  "Deception", // fallback if added later
+  "FastTalk",
+  "FirearmsHandgun",
+  "FirstAid",
+  "NaturalWorld",
+  "Swim",
+  "Charm",
+  "CreditRating",
+  "FightingBrawl",
+  "Jump",
+  "LibraryUse",
+  "Navigate",
+  "Persuade",
+  "Psychology",
+  "Stealth",
+  "Throw",
+]);
 
 // Background questions (3 columns x 3 rows for now, can expand dynamically)
 const BACKGROUND_ROWS = [
@@ -198,7 +224,6 @@ function getCostBetween(rulesSpec, skill, currentValue, targetValue) {
       
       const diff = end - current;
       if (diff > 0) {
-        const currentMultiplier = (current >= threshold) ? multiplier : 1.0;
         if (current < threshold && end > threshold) {
           // Cost spans from before threshold to after - split it
           const diffBefore = threshold - current;
@@ -235,36 +260,18 @@ function getCostBetween(rulesSpec, skill, currentValue, targetValue) {
 function computeUsedXP(rulesSpec, values) {
   if (!rulesSpec) return 0;
   
-  console.log("=== XP Calculation Debug ===");
   let sum = 0;
   
   // Characteristics
   const characteristics = ["APP", "BONUS", "BRV", "STA", "AGI", "EDU", "INT", "LUCK", "SENSE", "SPOT", "WILL", "STATUS", "SAN", "SIZ", "ARMOR", "RES", "STR"];
-  console.log("--- Characteristics ---");
   for (const key of characteristics) {
     const v = Number(values[key]) || 0;
     const baseValue = rulesSpec.base[key] ?? 0;
     const cost = getCostBetween(rulesSpec, key, baseValue, v);
-    if (v > 0 || cost > 0) {
-      console.log(`${key}: base=${baseValue}, value=${v}, cost=${cost}`);
-    }
     sum += cost;
   }
   
   // Skills - using backend key names (with spaces)
-  const skills = [
-    "Accounting", "Animal Handling", "Anthropology", "Appraise", "Archeology", "Art Craft", "Art Craft 2",
-    "Artillery", "Charm", "Climb", "Computer Use", "Credit Rating", "Cthulhu Mythos", "Demolitions",
-    "Disguise", "Dodge", "Drive Auto", "Electronics", "Electrical Repair", "Fast Talk", "Fighting Brawl", "Fighting Other",
-    "Firearms Handgun", "Firearms Other", "Firearms Rifle Shotgun",
-    "First Aid", "History", "Hypnosis", "Intimidate", "Jump", "Language Other 1", "Language Other 2",
-    "Language Other 3", "Language Own", "Law", "Library Use", "Listen", "Locksmith",
-    "Mechanical Repair", "Medicine", "Natural World", "Navigate", "Occult", "Operate Heavy Machinery", "Persuade",
-    "Pilot", "Psychoanalysis", "Psychology", "Read Lips", "Ride", "Science", "Science Other",
-    "Science Other 2", "Sign Language", "Deception", "Sleight Of Hand", "Stealth", "Survival", "Swim", "Throw", "Track",
-    "Uncommon Language", "Other1", "Other2", "Other3"
-  ];
-  console.log("--- Skills ---");
   
   // Map frontend keys to backend keys for skills
   const skillKeyMap = {
@@ -316,13 +323,8 @@ function computeUsedXP(rulesSpec, values) {
     const v = Number(values[frontendKey]) || 0;
     const baseValue = rulesSpec.base[backendKey] ?? 0;
     const cost = getCostBetween(rulesSpec, backendKey, baseValue, v);
-    if (v > 0 || cost > 0) {
-      console.log(`${frontendKey} (${backendKey}): base=${baseValue}, value=${v}, cost=${cost}`);
-    }
     sum += cost;
   }
-  
-  console.log(`--- Total Used XP: ${sum} ---`);
   return sum;
 }
 
@@ -418,7 +420,6 @@ function clampStat(rulesSpec, num, fieldName) {
     "ScienceOther2": "Science Other 2",
     "SleightOfHand": "Sleight Of Hand",
     "Deception": "Deception",
-    "SleightOfHand": "Sleight Of Hand",
     "UncommonLanguage": "Uncommon Language"
   };
   
@@ -557,25 +558,25 @@ function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, co
   const costColor = getCostColor(costNow);
   const stepAmount = isSmallStep ? 1 : 5;
   const tooltipText = `${costNow * stepAmount} XP`;
-
-  const containerClass = ["stat-cell", className].filter(Boolean).join(" ");
+  const containerClass = ["cell", "stat-cell", className].filter(Boolean).join(" ");
 
   return (
-    <div style={styles.cell} className={containerClass}>
-      <div style={styles.statRow}>
-        <div style={styles.statLabel}>{label}</div>
-        <div style={styles.labelExtra}>
+    <div className={containerClass}>
+      <div className="stat-row">
+        <div className="stat-label">{label}</div>
+        <div className="label-extra">
           {base !== undefined && <strong className="no-print">{base}</strong>}
           {!readOnly && (costNow || costNow === 0) ? (
             <span className="no-print" style={{ color: costColor, fontWeight: "bold" }}> Cost {costNow}</span>
           ) : ""}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <div className="stat-input-row">
           {!readOnly && onDelta && (
-            <div className="xp-buttons" style={styles.stepButtons}>
+            <div className="xp-buttons step-buttons">
               <button
                 type="button"
-                style={{ ...styles.stepButton, background: costColor, color: getCostTextColor(costNow) }}
+                className="step-button"
+                style={{ background: costColor, color: getCostTextColor(costNow) }}
                 title={tooltipText}
                 onClick={() => onDelta(-stepAmount)}
               >
@@ -583,7 +584,8 @@ function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, co
               </button>
               <button
                 type="button"
-                style={{ ...styles.stepButton, background: costColor, color: getCostTextColor(costNow) }}
+                className="step-button"
+                style={{ background: costColor, color: getCostTextColor(costNow) }}
                 title={tooltipText}
                 onClick={() => onDelta(+stepAmount)}
               >
@@ -599,8 +601,7 @@ function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, co
             onChange={handleChange}
             onBlur={handleBlur}
             readOnly={readOnly}
-            className="stat-box-input"
-            style={styles.statBox}
+            className="stat-box-input stat-box"
           />
         </div>
       </div>
@@ -609,12 +610,12 @@ function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, co
 }
 
 function ReadSmall({ label, value, className = "" }) {
-  const containerClass = ["read-small", className].filter(Boolean).join(" ");
+  const containerClass = ["cell", "read-small", className].filter(Boolean).join(" ");
   return (
-    <div style={styles.cell} className={containerClass}>
-      <div style={styles.statRow}>
-        <div style={styles.statLabel}>{label}</div>
-        <input readOnly value={value} className="stat-box-input" style={styles.statBox} />
+    <div className={containerClass}>
+      <div className="stat-row">
+        <div className="stat-label">{label}</div>
+        <input readOnly value={value} className="stat-box-input stat-box" />
       </div>
     </div>
   );
@@ -622,14 +623,13 @@ function ReadSmall({ label, value, className = "" }) {
 
 function TextCell({ label, value, onChange }) {
   return (
-    <div style={styles.cell} className="text-cell">
-      <div style={styles.cellLabel}>{label}</div>
+    <div className="cell text-cell">
+      <div className="cell-label">{label}</div>
       <input
         type="text"
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
-        className="text-input"
-        style={styles.lineInput}
+        className="text-input line-input"
       />
     </div>
   );
@@ -863,9 +863,9 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
   // Show loading state while rules are being fetched
   if (rulesLoading) {
     return (
-      <div style={styles.pageWrapper}>
-        <div style={styles.page}>
-          <div style={{ padding: "2rem", textAlign: "center" }}>
+      <div className="page-wrapper">
+        <div className="player-page">
+          <div className="loading-block">
             <p>{t("playerForm.rulesLoading")}</p>
           </div>
         </div>
@@ -876,13 +876,13 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
   // Show error if rules failed to load
   if (rulesError) {
     return (
-      <div style={styles.pageWrapper}>
-        <div style={styles.page}>
-          <div style={{ ...styles.error, margin: "2rem" }}>
+      <div className="page-wrapper">
+        <div className="player-page">
+          <div className="error" style={{ margin: "2rem" }}>
             <p><strong>{t("playerForm.rulesErrorTitle")}:</strong> {rulesError}</p>
             <p>{t("playerForm.rulesErrorHint")}</p>
           </div>
-          <button onClick={onCancel} style={{ ...styles.button, margin: "1rem", background: "#9ca3af" }}>
+          <button onClick={onCancel} className="button" style={{ margin: "1rem", background: "#9ca3af" }}>
             {t("playerForm.back")}
           </button>
         </div>
@@ -891,196 +891,20 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
   }
 
   return (
-    <div style={styles.pageWrapper}>
-      <style>{`
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-        input[type="number"] {
-          -moz-appearance: textfield;
-          appearance: textfield;
-        }
-
-        /* CoC decorative frame */
-        .sheet-page {
-          position: relative;
-          --frame-thickness: 28px;
-        }
-        .coc-frame {
-          pointer-events: none;
-        }
-        .frame-top,
-        .frame-bottom {
-          position: absolute;
-          left: 0;
-          width: 100%;
-          height: var(--frame-thickness);
-          background-image: url(${frameHorizontalShort});
-          background-repeat: repeat-x;
-          background-size: auto 100%;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-          z-index: 0;
-        }
-        .frame-top { top: 0; }
-        .frame-bottom { bottom: 0; }
-                /* Corner signs */
-                .coc-corner {
-                  position: absolute;
-                  width: calc(var(--frame-thickness) * 3);
-                  height: calc(var(--frame-thickness) * 3);
-                  background-repeat: no-repeat;
-                  background-size: contain;
-                  -webkit-print-color-adjust: exact;
-                  print-color-adjust: exact;
-                  z-index: 1;
-                }
-                .corner-tl { top: 0; left: 0; background-image: url(${cornerTL}); }
-                .corner-tr { top: 0; right: 0; background-image: url(${cornerTR}); }
-                .corner-bl { bottom: 0; left: 0; background-image: url(${cornerBL}); }
-                .corner-br { bottom: 0; right: 0; background-image: url(${cornerBR}); }
-        .frame-left,
-        .frame-right {
-          position: absolute;
-          top: var(--frame-thickness);
-          height: calc(100% - (var(--frame-thickness) * 2));
-          width: var(--frame-thickness);
-          background-image: url(${frameVertical});
-          background-repeat: repeat-y;
-          background-size: 100% auto;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-          z-index: 0;
-        }
-        .frame-left { left: 0; }
-        .frame-right { right: 0; }
-
-        /* Use short vertical for small screens */
-        @media (max-height: 700px), (max-width: 640px) {
-          .frame-left,
-          .frame-right {
-            background-image: url(${frameVerticalShort});
-          }
-        }
-
-        /* Divider between characteristics and skills */
-        .sheet-divider {
-          position: relative;
-          height: 1px;
-          margin: 10px 0;
-          background: linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0.35), rgba(0,0,0,0.05));
-          z-index: 2;
-        }
-
-        .print-bg-image {
-          display: none;
-        }
-
-        @media print {
-          @page { size: A4; margin: 8mm; }
-          .sheet-page { padding: 0.75rem !important; position: relative !important; }
-          /* Ensure frame prints */
-          .frame-top,
-          .frame-bottom,
-          .frame-left,
-          .frame-right {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            opacity: 1 !important;
-            z-index: 0 !important;
-          }
-          /* Use short verticals on print to stay within A4 */
-          .frame-left,
-          .frame-right {
-            background-image: url(${frameVerticalShort}) !important;
-          }
-          .coc-corner {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            opacity: 1 !important;
-            z-index: 1 !important;
-          }
-          .frame-horizontal {
-            z-index: 0 !important;
-          }
-          .frame-left,
-          .frame-right {
-            z-index: 0 !important;
-          }
-          .print-bg-image {
-            display: block !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: contain !important;
-            opacity: 0.15 !important;
-            z-index: 0 !important;
-            filter: grayscale(100%) !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          .sheet-header, .sheet-grid, form {
-            position: relative !important;
-            z-index: 2 !important;
-          }
-          /* Keep avatar box transparent in print so PNG transparency is preserved */
-          .avatarBox { background: transparent !important; }
-          /* Make avatar column wrapper transparent in print */
-          .avatarCol { background: transparent !important; border-color: rgba(0,0,0,0.18) !important; }
-          /* Ensure divider prints clearly */
-          .sheet-divider { background: rgba(0,0,0,0.35) !important; height: 1px !important; }
-          .sheet-header { gap: 3px 4px !important; background: transparent !important; border: 1px solid #111 !important; border-radius: 8px !important; }
-          .sheet-header .cell { padding: 2px 3px !important; background: transparent !important; border: 1px solid rgba(0,0,0,0.18) !important; }
-          .sheet-header input { padding: 2px 3px !important; font-size: 10px !important; background: transparent !important; }
-          .sheet-grid { gap: 0.5rem 0.9rem !important; background: transparent !important; border: 1px solid #111 !important; border-radius: 12px !important; margin: 12px !important; }
-          .sheet-grid .field-header > span:first-child { padding-left: 5px !important; }
-          .sheet-grid .field-header { gap: 0.28rem !important; }
-          .sheet-grid .value-row { gap: 3px !important; }
-          .xp-buttons { display: none !important; }
-          .no-print { display: none !important; }
-          .print-hide { display: none !important; }
-          .label-extra { display: none !important; }
-          .label-extra-hide-print { display: none !important; }
-          strong { font-weight: normal !important; }
-          .sheet-header .statRow { gap: 4px !important; }
-          .sheet-header .statLabel { font-size: 9px !important; }
-          .avatarImg { filter: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; z-index: 0 !important; position: relative !important; }
-          .sheet-header input[type="number"],
-          .sheet-header input[readOnly] {
-            width: 48px !important;
-            min-width: 42px !important;
-            max-width: 52px !important;
-            font-size: 9px !important;
-            text-align: right !important;
-            padding: 2px 3px !important;
-            background: transparent !important;
-          }
-          .sheet-header .cell { padding: 2px 3px !important; }
-          .sheet-header .statRow { justify-content: space-between !important; }
-          .value-row { flex-wrap: wrap !important; max-width: 100% !important; justify-content: flex-start !important; gap: 3px !important; }
-          .value-row input { width: 22px !important; min-width: 18px !important; text-align: right !important; font-size: 9px !important; padding: 2px 3px !important; background: transparent !important; }
-          .stat-cell { background: transparent !important; }
-          .read-small { background: transparent !important; }
-          .stat-box-input { background: transparent !important; }
-          .text-cell { background: transparent !important; }
-          .text-input { background: transparent !important; }
-          .age-cell { background: transparent !important; }
-          .age-input { background: transparent !important; }
-          .cell { background: transparent !important; }
-          input[type="number"] { background: transparent !important; }
-          input[readOnly] { background: transparent !important; }
-          /* Hide scrollbars in print */
-          ::-webkit-scrollbar { display: none !important; }
-          body { scrollbar-width: none !important; }
-        }
-      `}</style>
-
-      <div style={styles.mainContainer}>
-        <div className="sheet-page" style={styles.page}>
+    <div className="page-wrapper">
+      <div className="main-container">
+        <div
+          className="sheet-page player-page"
+          style={{
+            "--frame-horizontal": `url(${frameHorizontalShort})`,
+            "--frame-vertical": `url(${frameVertical})`,
+            "--frame-vertical-short": `url(${frameVerticalShort})`,
+            "--corner-tl": `url(${cornerTL})`,
+            "--corner-tr": `url(${cornerTR})`,
+            "--corner-bl": `url(${cornerBL})`,
+            "--corner-br": `url(${cornerBR})`,
+          }}
+        >
           {/* Decorative frame elements */}
           <div className="coc-frame frame-top" aria-hidden="true"></div>
           <div className="coc-frame frame-left" aria-hidden="true"></div>
@@ -1100,29 +924,28 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             />
           )}
           
-          <div className="no-print" style={{ display: "flex", justifyContent: "flex-end", marginBottom: "8px", position: "relative", zIndex: 1 }}>
+          <div className="no-print toolbar-row">
             <LanguageSwitcher variant="compact" />
           </div>
           
-          <div className="sheet-header" style={styles.headerGrid}>
+          <div className="sheet-header header-grid">
             {/* Row 1 */}
             <TextCell label="Player" value={form.player} onChange={(v) => handleTextChange("player", v)} />
             <TextCell label="Name" value={form.name} onChange={(v) => handleTextChange("name", v)} />
             <TextCell label="Birthplace" value={form.birthPlace} onChange={(v) => handleTextChange("birthPlace", v)} />
 
             {/* Avatar */}
-            <div className="avatarCol" style={styles.avatarCol}>
-              <div className="avatarBox" style={styles.avatarBox} onClick={() => document.getElementById('avatar-upload').click()} title={t("playerForm.uploadImageTooltip")}>
+            <div className="avatarCol avatar-col">
+              <div className="avatarBox avatar-box" onClick={() => document.getElementById('avatar-upload').click()} title={t("playerForm.uploadImageTooltip")}>
                 <img
                   src={form.avatar ? `data:image/*;base64,${form.avatar}` : defaultAvatar}
                   alt={form.name || "avatar"}
-                  style={styles.avatarImg}
+                  className="avatar-img"
                 />
               </div>
               <input
                 id="avatar-upload"
-                className="no-print"
-                style={styles.avatarInput}
+                className="no-print avatar-input"
                 type="file"
                 accept="image/*"
                 onChange={handleAvatarChange}
@@ -1130,28 +953,26 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             </div>
 
             {/* Row 2: Pronoun and Age in same div */}
-            <div style={{ ...styles.cell, background: "transparent" }} className="pronoun-age-cell">
-              <div style={{ display: "flex", gap: "8px" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={styles.cellLabel}>Pronoun</div>
+            <div className="cell pronoun-age-cell">
+              <div className="pronoun-age-inner">
+                <div className="pronoun-input">
+                  <div className="cell-label">Pronoun</div>
                   <input
                     type="text"
                     value={form.pronoun || ""}
                     onChange={(e) => handleTextChange("pronoun", e.target.value)}
-                    className="text-input"
-                    style={styles.lineInput}
+                    className="text-input line-input"
                   />
                 </div>
-                <div style={{ flex: "0 0 60px" }}>
-                  <div style={styles.cellLabel}>Age</div>
+                <div className="age-wrapper">
+                  <div className="cell-label">Age</div>
                   <input
                     type="number"
                     min={0}
                     max={120}
                     value={form.age || 0}
                     onChange={(e) => handleNumericChange("age", e.target.value)}
-                    className="age-input"
-                    style={styles.lineInput}
+                    className="age-input line-input"
                   />
                 </div>
               </div>
@@ -1215,8 +1036,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             <ReadSmall label="Used XP" value={form.usedXP ?? 0} className="print-hide" />
             <ReadSmall label="Level" value={form.level ?? 0} />
           </div>
-          <form onSubmit={(e) => handleSubmit(e, false)} style={styles.form}>
-            <div className="sheet-grid" style={styles.grid}>
+          <form onSubmit={(e) => handleSubmit(e, false)} className="player-form">
+            <div className="sheet-grid">
               {FIELD_DEFS.map((def) => {
                 // Map frontend keys to backend keys
                 const skillKeyMap = {
@@ -1280,28 +1101,34 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                 const halfValue = Math.floor(numericValue / 2);
                 const fifthValue = Math.floor(numericValue / 5);
 
-                const isOther = def.key.toLowerCase().includes("other");
-                const hideInPrint = isOther && base !== undefined && numericValue === Number(base);
-                const isCthulhuMythos = def.key === "CthulhuMythos";
-                const hideSkillInPrint = !isCthulhuMythos && numericValue <= 10 && numericValue > 0;
-                const containerClass = (hideInPrint || hideSkillInPrint) ? "print-hide" : "";
+                const baseValue = Number(base ?? 0);
+                const gain = numericValue - baseValue;
+                const hideForSmallGain = gain < 4;
+                const hideForLowValue = numericValue < 9;
+
+                // Keep must-have skills visible in print regardless of value
+                const isMustHave = MUST_HAVE_SKILLS.has(def.key);
+                const hideInPrint = !isMustHave && (hideForSmallGain || hideForLowValue);
+
+                const containerClass = [hideInPrint ? "print-hide" : "", "field"].filter(Boolean).join(" ");
 
                 return (
-                  <div key={def.key} style={styles.field} className={containerClass}>
-                    <div className="field-header" style={styles.fieldHeader} title={tooltipText}> 
-                      <span style={{ ...styles.labelText, flex: 1 }}>
+                  <div key={def.key} className={containerClass}>
+                    <div className="field-header" title={tooltipText}> 
+                      <span className="label-text flex-1">
                         {def.label} <strong className="no-print">{labelWithBase.split(" ").pop()}</strong>
                         {labelExtra && (
-                          <span className="label-extra no-print" style={{ ...styles.labelExtra, color: costColor, fontWeight: "bold" }}>{labelExtra}</span>
+                          <span className="label-extra no-print" style={{ color: costColor, fontWeight: "bold" }}>{labelExtra}</span>
                         )}
                       </span>
 
-                      <div className="value-row" style={styles.valueRow}>
+                      <div className="value-row">
                         {isNumber && (
-                          <div className="xp-buttons" style={styles.stepButtons}>
+                          <div className="xp-buttons step-buttons">
                             <button
                               type="button"
-                              style={{ ...styles.stepButton, background: costColor, color: getCostTextColor(currentCost) }}
+                              className="step-button"
+                              style={{ background: costColor, color: getCostTextColor(currentCost) }}
                               title={deltaTooltipText}
                               onClick={() => handleDelta(def.key, -5)}
                             >
@@ -1309,7 +1136,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                             </button>
                             <button
                               type="button"
-                              style={{ ...styles.stepButton, background: costColor, color: getCostTextColor(currentCost) }}
+                              className="step-button"
+                              style={{ background: costColor, color: getCostTextColor(currentCost) }}
                               title={deltaTooltipText}
                               onClick={() => handleDelta(def.key, +5)}
                             >
@@ -1329,21 +1157,21 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                           }
                           onBlur={def.type === "number" ? () => handleNumericBlur(def.key) : undefined}
                           max={def.type === "number" ? 90 : undefined}
-                          style={styles.inputInline}
+                          className="input-inline"
                           placeholder={def.type === "number" && numericValue === 0 ? "0" : undefined}
                         />
 
                         <input
                           readOnly
                           value={halfValue}
-                          style={styles.inputInlineReadOnly}
+                          className="input-inline-readonly"
                           aria-label={`${def.label} half value`}
                         />
 
                         <input
                           readOnly
                           value={fifthValue}
-                          style={styles.inputInlineReadOnlySmall}
+                          className="input-inline-readonly-small"
                           aria-label={`${def.label} fifth value`}
                         />
                       </div>
@@ -1353,21 +1181,21 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               })}
             </div>
 
-            {error && <div style={styles.error}>{error}</div>}
+            {error && <div className="error">{error}</div>}
 
             {/* Background questions */}
-            <div id="background" style={styles.backgroundSection}>
-              <div style={styles.backgroundGrid}>
+            <div id="background" className="background-section">
+              <div className="background-grid">
                 {BACKGROUND_ROWS.map((row, rowIdx) => (
-                  <div key={`bg-row-${rowIdx}`} style={styles.backgroundRow}>
+                  <div key={`bg-row-${rowIdx}`} className="background-row">
                     {row.map((cell) => (
-                      <div key={cell.key} style={styles.backgroundCell}>
-                        <div style={styles.backgroundLabel}>{cell.label}</div>
+                      <div key={cell.key} className="background-cell">
+                        <div className="background-label">{cell.label}</div>
                         <textarea
                           name={cell.key}
                           value={form[cell.key] ?? ""}
                           onChange={(e) => handleTextChange(cell.key, e.target.value)}
-                          style={styles.backgroundArea}
+                          className="background-area"
                           rows={2}
                         />
                       </div>
@@ -1377,10 +1205,11 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               </div>
             </div>
 
-            <div className="update-buttons no-print" style={styles.buttonsBar}>
+            <div className="update-buttons no-print buttons-bar">
               <button
                 type="button"
-                style={{ ...styles.button, background: "#9ca3af" }}
+                className="button"
+                style={{ background: "#9ca3af" }}
                 onClick={onCancel}
                 disabled={isSubmitting}
               >
@@ -1389,7 +1218,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="submit"
-                style={{ ...styles.button, background: "#fbbf24" }}
+                className="button"
+                style={{ background: "#fbbf24" }}
                 disabled={isSubmitting}
                 onClick={(e) => handleSubmit(e, false)}
               >
@@ -1398,7 +1228,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#22c55e" }}
+                className="button"
+                style={{ background: "#22c55e" }}
                 disabled={isSubmitting}
                 onClick={(e) => handleSubmit(e, true)}
               >
@@ -1408,7 +1239,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               {mode === "create" && (
                 <button
                   type="button"
-                  style={{ ...styles.button, background: "#0ea5e9" }}
+                  className="button"
+                  style={{ background: "#0ea5e9" }}
                   onClick={() => window.print()}
                 >
                   {t("playerForm.print")}
@@ -1417,7 +1249,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#8b5cf6" }}
+                className="button"
+                style={{ background: "#8b5cf6" }}
                 onClick={handleExportJSON}
               >
                 {t("playerForm.exportJson")}
@@ -1425,7 +1258,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#fafafa", color: "#000" }}
+                className="button"
+                style={{ background: "#fafafa", color: "#000" }}
                 onClick={() => handleSetAll(10)}
               >
                 All 10
@@ -1433,7 +1267,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#f5f5f5", color: "#000" }}
+                className="button"
+                style={{ background: "#f5f5f5", color: "#000" }}
                 onClick={() => handleSetAll(15)}
               >
                 All 15
@@ -1441,7 +1276,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#eeeeee", color: "#000" }}
+                className="button"
+                style={{ background: "#eeeeee", color: "#000" }}
                 onClick={() => handleSetAll(20)}
               >
                 All 20
@@ -1449,7 +1285,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#e0e0e0", color: "#000" }}
+                className="button"
+                style={{ background: "#e0e0e0", color: "#000" }}
                 onClick={() => handleSetAll(25)}
               >
                 All 25
@@ -1457,7 +1294,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#d1d5db", color: "#000" }}
+                className="button"
+                style={{ background: "#d1d5db", color: "#000" }}
                 onClick={() => handleSetAll(30)}
               >
                 All 30
@@ -1465,7 +1303,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#9ca3af", color: "#000" }}
+                className="button"
+                style={{ background: "#9ca3af", color: "#000" }}
                 onClick={() => handleSetAll(35)}
               >
                 All 35
@@ -1473,7 +1312,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#6b7280", color: "#fff" }}
+                className="button"
+                style={{ background: "#6b7280", color: "#fff" }}
                 onClick={() => handleSetAll(40)}
               >
                 All 40
@@ -1481,7 +1321,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#374151", color: "#fff" }}
+                className="button"
+                style={{ background: "#374151", color: "#fff" }}
                 onClick={() => handleSetAll(45)}
               >
                 All 45
@@ -1489,7 +1330,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
               <button
                 type="button"
-                style={{ ...styles.button, background: "#1f2937", color: "#fff" }}
+                className="button"
+                style={{ background: "#1f2937", color: "#fff" }}
                 onClick={() => handleSetAll(50)}
               >
                 All 50
@@ -1498,7 +1340,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               {mode !== "create" && (
                 <button
                   type="button"
-                  style={{ ...styles.button, background: "#ef4444", color: "#fff" }}
+                  className="button"
+                  style={{ background: "#ef4444", color: "#fff" }}
                   onClick={handleDelete}
                   disabled={isSubmitting}
                 >
@@ -1512,306 +1355,5 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
     </div>
   );
 }
-
-const styles = {
-  pageWrapper: {
-    display: "flex",
-    flexDirection: "column",
-    minHeight: "100vh",
-    paddingBottom: "10px",
-  },
-  mainContainer: {
-    display: "flex",
-    flex: 1,
-    position: "relative",
-    gap: 0,
-    margin: "0 auto",
-    width: "100%",
-    maxWidth: "100%",
-    alignItems: "stretch",
-  },
-  page: {
-    flex: 1,
-    padding: "1.5rem",
-    background: "#ffffff",
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-    color: "#111827",
-    boxSizing: "border-box",
-    display: "flex",
-    flexDirection: "column",
-    minWidth: 0,
-  },
-  avatarCol: {
-    gridColumn: 4,
-    gridRow: "1 / span 6",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    alignSelf: "start",
-    gap: "6px",
-    border: "1px solid rgba(0,0,0,0.18)",
-    borderRadius: "8px",
-    padding: "8px",
-    background: "#fff",
-  },
-  avatarBox: {
-    width: "182px",
-    height: "238px",
-    border: "2px solid #111",
-    borderRadius: "4px",
-    overflow: "hidden",
-    background: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    transition: "border-color 0.2s",
-  },
-  avatarImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-  },
-  avatarPlaceholder: {
-    fontSize: "0.85rem",
-    color: "#9ca3af",
-    textAlign: "center",
-  },
-  avatarInput: {
-    display: "none",
-  },
-  form: {
-    marginTop: "0.5rem",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.75rem",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: "0.6rem 1rem",
-    background: "#ffffffff",
-    borderRadius: "0.75rem",
-    border: "1px solid #000000ff",
-    marginLeft: "1rem",
-    marginRight: "1rem",
-  },
-  field: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.12rem",
-    fontSize: "0.75rem",
-    position: "relative",
-  },
-  fieldHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "0.24rem",
-    marginTop: "1px",
-    marginLeft: "10px",
-    marginRight: "10px",
-  },
-  labelText: {
-    color: "#4b5563",
-  },
-  labelExtra: {
-    paddingLeft: "4px",
-    color: "#6b7280",
-    fontSize: "0.75rem",
-  },
-  inputInline: {
-    padding: "0.13rem 0.18rem",
-    borderRadius: "0.28rem",
-    border: "1px solid #000000ff",
-    background: "#ffffffff",
-    color: "#111827",
-    fontSize: "0.76rem",
-    boxSizing: "border-box",
-    width: "32px",
-    minWidth: "28px",
-    maxWidth: "40px",
-    textAlign: "right",
-  },
-  inputInlineReadOnly: {
-    padding: "0.11rem 0.16rem",
-    borderRadius: "0.28rem",
-    border: "1px solid #d1d5db",
-    background: "#f3f4f6",
-    color: "#6b7280",
-    fontSize: "0.74rem",
-    boxSizing: "border-box",
-    width: "24px",
-    minWidth: "20px",
-    maxWidth: "32px",
-    textAlign: "right",
-  },
-  inputInlineReadOnlySmall: {
-    padding: "0.10rem 0.14rem",
-    borderRadius: "0.28rem",
-    border: "1px solid #e5e7eb",
-    background: "#f8fafc",
-    color: "#6b7280",
-    fontSize: "0.72rem",
-    boxSizing: "border-box",
-    width: "20px",
-    minWidth: "18px",
-    maxWidth: "28px",
-    textAlign: "right",
-  },
-  valueRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "0.1rem",
-    flexShrink: 0,
-    justifyContent: "flex-end",
-    minWidth: 0,
-    flexBasis: "45%",
-    maxWidth: "48%",
-    flexWrap: "wrap",
-    marginLeft: "auto",
-  },
-  stepButtons: {
-    display: "flex",
-    flexDirection: "row",
-    gap: "0.2rem",
-    position: "relative",
-    zIndex: 2,
-  },
-  stepButton: {
-    padding: "0.08rem 0.3rem",
-    borderRadius: "0.35rem",
-    border: "1px solid #78350f",
-    background: "#facc15",
-    color: "#451a03",
-    fontSize: "0.62rem",
-    cursor: "pointer",
-  },
-  error: {
-    background: "#7f1d1d",
-    padding: "0.5rem",
-    borderRadius: "0.5rem",
-    color: "#fecaca",
-    fontSize: "0.8rem",
-  },
-  buttonsBar: {
-    position: "sticky",
-    bottom: 0,
-    marginTop: "0.5rem",
-    display: "flex",
-    gap: "0.5rem",
-    justifyContent: "flex-end",
-    background: "linear-gradient(to top, rgba(0,0,0,0.15), rgba(0,0,0,0))",
-    paddingTop: "0.5rem",
-    paddingBottom: "0.25rem",
-    position: "relative",
-    zIndex: 2,
-  },
-  button: {
-    padding: "0.45rem 0.8rem",
-    borderRadius: "0.5rem",
-    border: "none",
-    fontWeight: 600,
-    fontSize: "0.85rem",
-    cursor: "pointer",
-    color: "#111827",
-  },
-  headerGrid: {
-    display: "grid",
-    gridTemplateColumns: "2fr 2fr 2fr 3fr",
-    gridAutoRows: "minmax(25px, auto)",
-    gap: "4px 5px",
-    border: "1px solid #111",
-    borderRadius: "8px",
-    padding: "8px",
-    margin: "15px",
-    marginBottom: "12px",
-    alignItems: "stretch",
-  },
-  cell: {
-    border: "1px solid rgba(0,0,0,0.18)",
-    borderRadius: "4px",
-    padding: "3px 4px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    minWidth: 0,
-    background: "#fff",
-  },
-  cellLabel: {
-    fontSize: "10px",
-    marginBottom: "2px",
-    color: "#111",
-  },
-  lineInput: {
-    width: "100%",
-    border: "none",
-    borderBottom: "1px solid #111",
-    outline: "none",
-    padding: "2px 2px",
-    fontSize: "12px",
-    background: "transparent",
-    boxSizing: "border-box",
-  },
-  statRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "10px",
-  },
-  statLabel: {
-    fontWeight: 800,
-    letterSpacing: "0.3px",
-    fontSize: "11px",
-  },
-  statBox: {
-    width: "70px",
-    height: "24px",
-    border: "1px solid #111",
-    borderRadius: "3px",
-    textAlign: "center",
-    fontSize: "12px",
-    background: "#fff",
-  },
-  backgroundSection: {
-    margin: "4px 8px 6px 8px",
-    padding: "6px 8px",
-    border: "1px solid #111",
-    borderRadius: "8px",
-    background: "transparent",
-  },
-  backgroundGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: "4px",
-  },
-  backgroundRow: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "4px",
-  },
-  backgroundCell: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "2px",
-  },
-  backgroundLabel: {
-    fontSize: "10px",
-    fontWeight: 700,
-    color: "#111",
-  },
-  backgroundArea: {
-    width: "100%",
-    minHeight: "52px",
-    resize: "vertical",
-    border: "1px solid #111",
-    borderRadius: "6px",
-    padding: "4px 6px",
-    fontSize: "12px",
-    fontFamily: "inherit",
-    background: "transparent",
-    boxSizing: "border-box",
-  },
-};
 
 export default PlayerForm;
