@@ -1,10 +1,9 @@
 services:
   - type: web
     name: d100
-    env: java
+    env: docker
     plan: free
-    buildCommand: mvn -DskipTests package
-    startCommand: java -jar target/d100-0.0.1-SNAPSHOT.jar
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: SPRING_DATASOURCE_URL
         value: ""
