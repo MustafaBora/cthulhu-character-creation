@@ -13,5 +13,7 @@ services:
         value: ""
       - key: SPRING_PROFILES_ACTIVE
         value: "prod"
+      - key: APP_JWT_SECRET
+        value: "aagfewiuighfiehgiehugehrghiehirghherhgegrhehgrehrghehgregergergergeeejrehge7499040444433t4"
     healthCheckPath: /api/rules
     autoDeploy: true
