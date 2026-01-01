@@ -1,17 +1,16 @@
 package com.bora.d100.service;
 
+import java.util.List;
 import java.util.logging.Logger;
+
+import org.springframework.stereotype.Service;
 
 import com.bora.d100.exception.PlayerNotFoundException;
 import com.bora.d100.exception.XPCalculationMismatchException;
 import com.bora.d100.mapper.PlayerMapper;
 import com.bora.d100.model.Player;
-import com.bora.d100.model.Role;
 import com.bora.d100.model.User;
 import com.bora.d100.repository.PlayerRepository;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class PlayerService {

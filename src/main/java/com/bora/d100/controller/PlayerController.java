@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bora.d100.dto.RulesSpec;
-import com.bora.d100.exception.InvalidTokenException;
 import com.bora.d100.model.Player;
 import com.bora.d100.model.User;
 import com.bora.d100.service.PlayerService;
