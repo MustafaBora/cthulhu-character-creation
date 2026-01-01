@@ -1,5 +1,7 @@
 package com.bora.d100.controller;
 
+import java.util.logging.Logger;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,6 +31,8 @@ import jakarta.validation.Valid;
 @RequestMapping("/players")
 public class PlayerController
 {
+    private static final Logger logger = Logger.getLogger(PlayerController.class.getName());
+    
     private final PlayerService playerService;
     private final SheetService sheetService;
     private final RulesService rulesService;
@@ -43,12 +47,14 @@ public class PlayerController
     @GetMapping
     public ResponseEntity<?> getAllPlayers()
     {
+        logger.info("GET /players - retrieving all players");
         return ResponseEntity.ok(playerService.getAllPlayers());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getPlayerById(@PathVariable Long id)
     {
+        logger.info("GET /players/" + id + " - retrieving player");
         return ResponseEntity.ok(playerService.getPlayerById(id));
     }
 
@@ -56,8 +62,10 @@ public class PlayerController
     public ResponseEntity<?> createPlayer(
             @Valid @RequestBody Player/*RequestDTO dto*/ player,
             @AuthenticationPrincipal User user ) {
+        logger.info("POST /players - creating new player with character name: " + player.getName());
         //if (user == null)  throw new InvalidTokenException("Missing or invalid token");
         Player/*ResponseDTO*/ created = playerService.createPlayer(player, user);
+        logger.info("Player created successfully with ID: " + created.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -66,8 +74,10 @@ public class PlayerController
             @PathVariable Long id,
             @Valid @RequestBody Player/*RequestDTO dto*/ player,
             @AuthenticationPrincipal User user ) {
+        logger.info("PUT /players/" + id + " - updating player");
         //if (user == null) throw new InvalidTokenException("Missing or invalid token");
         Player/*ResponseDTO*/ updated = playerService.updatePlayer(id, player, user);
+        logger.info("Player " + id + " updated successfully");
         return ResponseEntity.ok(updated);
     }
 
@@ -77,8 +87,10 @@ public class PlayerController
             @AuthenticationPrincipal User user
     )
     {
+        logger.info("DELETE /players/" + id + " - deleting player");
         //if (user == null) throw new InvalidTokenException("Missing or invalid token");
         playerService.deletePlayer(id, user);
+        logger.info("Player " + id + " deleted successfully");
         return ResponseEntity.ok("Player deleted successfully");
     }
 
@@ -89,6 +101,7 @@ public class PlayerController
      */
     @GetMapping("/rules")
     public ResponseEntity<RulesSpec> getRulesSpec() {
+        logger.info("GET /players/rules - serving rules specification");
         return ResponseEntity.ok(rulesService.getRulesSpec());
     }
 

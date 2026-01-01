@@ -1,5 +1,7 @@
 package com.bora.d100.service;
 
+import java.util.logging.Logger;
+
 import org.springframework.stereotype.Service;
 
 import com.bora.d100.dto.RulesSpec;
@@ -14,6 +16,8 @@ import com.bora.d100.model.Player;
  */
 @Service
 public class CostServiceByUsage {
+    
+    private static final Logger logger = Logger.getLogger(CostServiceByUsage.class.getName());
 
     private final RulesService rulesService;
 
@@ -112,6 +116,7 @@ public class CostServiceByUsage {
      * Sonuç Player nesnesinde usedXP ve remainingXP olarak ayarlanır.
      */
     public Player calculateXP(Player player) throws XPCalculationMismatchException {
+        logger.info("Calculating XP for player " + player.getName() + " | Received UsedXP: " + player.getUsedXP());
         // Characteristics
         int APP = getCostBetween("APP", rulesService.getBaseValue("APP"), player.getAPP());
         int BONUS = getCostBetween("BONUS", rulesService.getBaseValue("BONUS"), player.getBONUS());
@@ -211,8 +216,11 @@ public class CostServiceByUsage {
                         Swim + ThrowSkill + Track + UncommonLanguage + Other1 + Other2 + Other3;
         
         if(player.getUsedXP() != totalCost) {
+            logger.warning("XP MISMATCH for " + player.getName() + " | Frontend: " + player.getUsedXP() + " | Backend calculated: " + totalCost);
             throw new XPCalculationMismatchException(totalCost, player.getUsedXP());
         }
+        
+        logger.info("XP calculation successful for " + player.getName() + " | Total XP: " + totalCost + " | Remaining: " + (player.getTotalXP() - totalCost));
         
         player.setUsedXP(totalCost);
         player.setRemainingXP(player.getTotalXP() - totalCost);

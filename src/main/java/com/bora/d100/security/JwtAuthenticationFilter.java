@@ -2,6 +2,7 @@ package com.bora.d100.security;
 
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,8 @@ import jakarta.servlet.http.HttpServletRequest;
 @Component
 public class JwtAuthenticationFilter implements Filter
 {
+    private static final Logger logger = Logger.getLogger(JwtAuthenticationFilter.class.getName());
+    
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
 
@@ -32,6 +35,7 @@ public class JwtAuthenticationFilter implements Filter
     {
         HttpServletRequest request = (HttpServletRequest) req;
         String header = request.getHeader("Authorization");
+        logger.info("JwtAuthenticationFilter: " + request.getMethod() + " " + request.getRequestURI() + " | Authorization: " + (header != null ? "present" : "missing"));
         // Temporarily skip JWT validation while frontend login is disabled
         // if (header != null && header.startsWith("Bearer "))
         // {

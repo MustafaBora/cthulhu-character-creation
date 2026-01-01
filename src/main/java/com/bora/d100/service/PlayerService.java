@@ -1,5 +1,7 @@
 package com.bora.d100.service;
 
+import java.util.logging.Logger;
+
 import com.bora.d100.exception.PlayerNotFoundException;
 import com.bora.d100.exception.XPCalculationMismatchException;
 import com.bora.d100.mapper.PlayerMapper;
@@ -13,6 +15,8 @@ import java.util.List;
 
 @Service
 public class PlayerService {
+    
+    private static final Logger logger = Logger.getLogger(PlayerService.class.getName());
 
     private final PlayerRepository playerRepository;
     private final PlayerMapper playerMapper;
@@ -29,15 +33,18 @@ public class PlayerService {
 
     public List<Player> getAllPlayers()
     {
+        logger.info("PlayerService.getAllPlayers() - fetching all players from database");
         List<Player> players = playerRepository.findAll()
                 .stream()
                 //.map(playerMapper::toResponseDto)
                 .toList();
+        logger.info("Found " + players.size() + " players");
         return players;
     }
 
     public Player getPlayerById(Long playerId)
     {
+        logger.info("PlayerService.getPlayerById(" + playerId + ")");
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFoundException(playerId));
 
@@ -47,6 +54,7 @@ public class PlayerService {
 
 
     public Player/*ResponseDTO*/ createPlayer(Player/*RequestDTO dto,*/ player, User user) throws XPCalculationMismatchException {
+        logger.info("PlayerService.createPlayer() - creating character: " + player.getName());
 //        Player player = playerMapper.toEntity(dto);
         player.setUser(user);
 //        costService.calculateXP(player);
@@ -54,11 +62,13 @@ public class PlayerService {
         player.calculateBuildAndDB();
         player.calculateMPAndHP();
         Player saved = playerRepository.save(player);
+        logger.info("Character created successfully with ID: " + saved.getId());
         return saved; //playerMapper.toResponseDto(saved);
     }
 
 
     public Player updatePlayer(Long id, Player incoming, User user) {
+        logger.info("PlayerService.updatePlayer(" + id + ") - updating character");
         Player existing = playerRepository.findById(id)
                 .orElseThrow(() -> new PlayerNotFoundException(id));
 
@@ -73,11 +83,14 @@ public class PlayerService {
         existing.calculateBuildAndDB();
         existing.calculateMPAndHP();
 
-        return playerRepository.save(existing);
+        Player result = playerRepository.save(existing);
+        logger.info("Character " + id + " updated successfully");
+        return result;
     }
 
 
     public void deletePlayer(Long playerId, User user) {
+        logger.info("PlayerService.deletePlayer(" + playerId + ")");
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFoundException(playerId));
 
