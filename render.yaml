@@ -7,11 +7,11 @@ services:
     dockerfilePath: ./Dockerfile
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: ""
+        value: "jdbc:postgresql://dpg-d5ai6mer433s738e5rdg-a.frankfurt-postgres.render.com:5432/cthulhu?sslmode=require"
       - key: SPRING_DATASOURCE_USERNAME
-        value: ""
+        value: "cthulhu_user"
       - key: SPRING_DATASOURCE_PASSWORD
-        value: ""
+        value: "seYct7kVsVl0e71W9CECPhz4xNxjaxR3"
       - key: SPRING_PROFILES_ACTIVE
         value: "prod"
       - key: APP_JWT_SECRET
