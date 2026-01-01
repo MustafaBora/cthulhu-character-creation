@@ -3,7 +3,6 @@ services:
     name: d100
     env: docker
     plan: free
-    region: frankfurt
     dockerfilePath: ./Dockerfile
     envVars:
       - key: SPRING_DATASOURCE_URL
