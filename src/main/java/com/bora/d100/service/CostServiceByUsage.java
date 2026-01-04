@@ -121,14 +121,14 @@ public class CostServiceByUsage {
         int APP = getCostBetween("APP", rulesService.getBaseValue("APP"), player.getAPP());
         int BONUS = getCostBetween("BONUS", rulesService.getBaseValue("BONUS"), player.getBONUS());
         int BRV = getCostBetween("BRV", rulesService.getBaseValue("BRV"), player.getBRV());
-        int CON = getCostBetween("STA", rulesService.getBaseValue("STA"), player.getCON());
+        int CON = getCostBetween("CON", rulesService.getBaseValue("CON"), player.getCON());
         int DEX = getCostBetween("AGI", rulesService.getBaseValue("AGI"), player.getDEX());
         int EDU = getCostBetween("EDU", rulesService.getBaseValue("EDU"), player.getEDU());
         int INT = getCostBetween("INT", rulesService.getBaseValue("INT"), player.getINT());
         int LUCK = getCostBetween("LUCK", rulesService.getBaseValue("LUCK"), player.getLUCK());
         int SENSE = getCostBetween("SENSE", rulesService.getBaseValue("SENSE"), player.getSENSE());
         int WILL = getCostBetween("WILL", rulesService.getBaseValue("WILL"), player.getWILL());
-        int STATUS = getCostBetween("STATUS", rulesService.getBaseValue("STATUS"), player.getSTATUS());
+        int STATUS = getCostBetween("STATUS", rulesService.getBaseValue("STATUS"), player.getStatus());
         int SAN = getCostBetween("SAN", rulesService.getBaseValue("SAN"), player.getSAN());
         int SIZ = getCostBetween("SIZ", rulesService.getBaseValue("SIZ"), player.getSIZ());
         int STR = getCostBetween("STR", rulesService.getBaseValue("STR"), player.getSTR());

@@ -67,7 +67,6 @@ public class Player {
     private int LUCK;
     private int SENSE;
     private int WILL;
-    private int STATUS;
     private int SAN;
     private int SIZ;
     private int STR;
@@ -131,6 +130,7 @@ public class Player {
     private int Deception;
     private int SleightOfHand;
     private int SPOT;
+    private int Status;
     private int Stealth;
     private int Survival;
     private int Swim;
@@ -159,7 +159,6 @@ public class Player {
             case "LUCK": return LUCK;
             case "SENSE": return SENSE;
             case "WILL": return WILL;
-            case "STATUS": return STATUS;
             case "SAN": return SAN;
             case "SIZ": return SIZ;
             case "STR": return STR;
@@ -222,6 +221,7 @@ public class Player {
             case "Deception": return Deception;
             case "SleightOfHand": return SleightOfHand;
             case "SPOT": return SPOT;
+            case "Status": return Status;
             case "Stealth": return Stealth;
             case "Survival": return Survival;
             case "Swim": return Swim;
@@ -249,7 +249,7 @@ public class Player {
             case "LUCK": LUCK = value; break;
             case "SENSE": SENSE = value; break;
             case "WILL": WILL = value; break;
-            case "STATUS": STATUS = value; break;
+            case "STATUS": Status = value; break;
             case "SAN": SAN = value; break;
             case "SIZ": SIZ = value; break;
             case "STR": STR = value; break;
@@ -411,12 +411,13 @@ public class Player {
             "FirearmsHandgun","FirearmsOther","FirearmsRifleShotgun","FirstAid","History","Hypnosis","Intimidate","Jump",
             "LanguageOther1","LanguageOther2","LanguageOther3","LanguageOwn","Law","LibraryUse","Listen","Locksmith",
             "MechanicalRepair","Medicine","NaturalWorld","Navigate","Occult","OperateHeavyMachinery","Persuade","Pilot",
-            "Psychoanalysis","Psychology","ReadLips","Ride","Science","ScienceOther","ScienceOther2","SignLanguage","Deception",
-            "SleightOfHand","Stealth","Survival","Swim","Throw","Track","UncommonLanguage","Other1","Other2","Other3"
+            "Psychoanalysis","Psychology","ReadLips","Ride","Science","ScienceOther","ScienceOther2","SignLanguage",
+            "Status", "Deception", "SleightOfHand","Stealth","Survival","Swim","Throw","Track","UncommonLanguage",
+            "Other1","Other2","Other3"
     };
 
         private static final String[] CHARACTERISTICS = {
             "APP","BONUS","BRV","CON","DEX","EDU","INT","LUCK","SENSE","WILL",
-            "STATUS","SAN","SIZ","STR","ARMOR","RES","SPOT"
+            "SAN","SIZ","STR","ARMOR","RES","SPOT"
         };
 }

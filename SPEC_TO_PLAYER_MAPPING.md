@@ -9,7 +9,7 @@ These are the Player model attributes and their corresponding spec keys:
 | APP | APP | Characteristic | 30 | 60 |
 | BONUS | BONUS | Characteristic | 0 | 120 |
 | BRV | BRV | Characteristic | 45 | 120 |
-| CON | STA | Characteristic | 30 | 120 |
+| CON | CON | Characteristic | 30 | 120 |
 | DEX | AGI | Characteristic | 35 | 220 |
 | EDU | EDU | Characteristic | 20 | 20 |
 | INT | INT | Characteristic | 30 | 60 |

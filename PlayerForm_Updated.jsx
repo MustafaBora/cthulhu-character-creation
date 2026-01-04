@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { API_BASE_URL } from "./config";
 import defaultAvatar from "./assets/default-avatar.png";
 import frameHorizontalShort from "./assets/horizontal-short.png";
 import frameVertical from "./assets/vertical.png";
@@ -11,11 +12,17 @@ import cornerBR from "./assets/signs-4.png";
 import LanguageSwitcher from "./LanguageSwitcher";
 import "./PlayerForm.css";
 
+// Debug mode kontrolü - All X butonlarını göstermek için true yapın
+const DEBUGMODE = false;
+
 /**
  * Updated PlayerForm.jsx to use backend RulesSpec with multi-level penalties
  * Loads rules from GET /api/rules instead of hardcoding them
  * Supports 5 penalty levels: 40(1.5x), 50(2x), 60(3x), 70(4x), 80(6x)
  */
+
+const RULES_CACHE_KEY = "rulesCache";
+const RULES_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const FIELD_DEFS = [
   { key: "Accounting", label: "Accounting", type: "number" },
@@ -39,18 +46,18 @@ const FIELD_DEFS = [
   { key: "ElectricalRepair", label: "Electrical Repair", type: "number" },
   { key: "FastTalk", label: "Fast Talk", type: "number" },
   { key: "FightingBrawl", label: "Fighting Brawl", type: "number" },
-  { key: "FightingOther", label: "FO", type: "number" },
-  { key: "FirearmsHandgun", label: "Firearms Handgun", type: "number" },
-  { key: "FirearmsOther", label: "FA-O", type: "number" },
+  { key: "FightingOther", label: "FO (___________)", type: "number" },
+  { key: "FirearmsHandgun", label: "Handgun", type: "number" },
+  { key: "FirearmsOther", label: "FA-O (___________)", type: "number" },
   { key: "FirearmsRifleShotgun", label: "Firearms Shotgun", type: "number" },
   { key: "FirstAid", label: "First Aid", type: "number" },
   { key: "History", label: "History", type: "number" },
   { key: "Hypnosis", label: "Hypnosis", type: "number" },
   { key: "Intimidate", label: "Intimidate", type: "number" },
   { key: "Jump", label: "Jump", type: "number" },
-  { key: "LanguageOther1", label: "LO1", type: "number" },
-  { key: "LanguageOther2", label: "LO2", type: "number" },
-  { key: "LanguageOther3", label: "LO3", type: "number" },
+  { key: "LanguageOther1", label: "LO1 (___________)", type: "number" },
+  { key: "LanguageOther2", label: "LO2 (___________)", type: "number" },
+  { key: "LanguageOther3", label: "LO3 (___________)", type: "number" },
   { key: "LanguageOwn", label: "Language", type: "number" },
   { key: "Law", label: "Law", type: "number" },
   { key: "LibraryUse", label: "Library Use", type: "number" },
@@ -69,20 +76,21 @@ const FIELD_DEFS = [
   { key: "ReadLips", label: "Read Lips", type: "number" },
   { key: "Ride", label: "Ride", type: "number" },
   { key: "Science", label: "Science", type: "number" },
-  { key: "ScienceOther", label: "SO", type: "number" },
-  { key: "ScienceOther2", label: "SO2", type: "number" },
+  { key: "ScienceOther", label: "SO (___________)", type: "number" },
+  { key: "ScienceOther2", label: "SO2 (___________)", type: "number" },
   { key: "SignLanguage", label: "Sign Language", type: "number" },
   { key: "Deception", label: "Deception", type: "number" },
   { key: "SleightOfHand", label: "Sleight of Hand", type: "number" },
+  { key: "Status", label: "Status", type: "number" },
   { key: "Stealth", label: "Stealth", type: "number" },
   { key: "Survival", label: "Survival", type: "number" },
   { key: "Swim", label: "Swim", type: "number" },
   { key: "Throw", label: "Throw", type: "number" },
   { key: "Track", label: "Track", type: "number" },
   { key: "UncommonLanguage", label: "Uncommon Language", type: "number" },
-  { key: "Other1", label: "O1", type: "number" },
-  { key: "Other2", label: "O2", type: "number" },
-  { key: "Other3", label: "O3", type: "number" },
+  { key: "Other1", label: "O1 (___________)", type: "number" },
+  { key: "Other2", label: "O2 (___________)", type: "number" },
+  { key: "Other3", label: "O3 (___________)", type: "number" },
 ];
 
 // Skills that must always remain visible in print, regardless of value
@@ -130,29 +138,220 @@ const BACKGROUND_ROWS = [
 ];
 const BACKGROUND_KEYS = BACKGROUND_ROWS.flat().map((c) => c.key);
 
-// Cost değerine göre renk döndürür
-function getCostColor(cost) {
-  // Daha geniş skala: ilk renk krem, son iki renk koyu gri ve siyah
-  if (cost < 50) return "#dee3a7";       // krem (en ucuz)
-  if (cost < 100) return "#a4dc76";      // lime
-  if (cost < 150) return "#20b961";      // açık yeşil
-  if (cost < 200) return "#72c53e";      // yeşil
-  if (cost < 250) return "#aab318";      // sarı
-  if (cost < 300) return "#f59e0b";      // amber
-  if (cost < 400) return "#f97316";      // turuncu
-  if (cost < 500) return "#ef4444";      // kırmızı
-  if (cost < 600) return "#dc2626";      // koyu kırmızı
-  if (cost < 800) return "#be123c";      // crimson
-  if (cost < 1000) return "#9333ea";     // mor
-  if (cost < 1500) return "#7c3aed";     // koyu mor
-  if (cost < 2000) return "#581c87";     // çok koyu mor
-  if (cost < 4000) return "#374151";     // koyu gri
-  return "#000000";                      // siyah (en pahalı)
+function createFallbackRulesSpec() {
+  const base = {
+    totalXP: 200000,
+    usedXP: 0,
+    remainingXP: 0,
+    APP: 30,
+    BONUS: 0,
+    BRV: 45,
+    CON: 30,
+    AGI: 35,
+    EDU: 20,
+    INT: 30,
+    LUCK: 35,
+    SENSE: 10,
+    WILL: 30,
+    STATUS: 1,
+    SAN: 45,
+    SIZ: 31,
+    STR: 25,
+    ARMOR: 0,
+    RES: 0,
+    Accounting: 7,
+    "Animal Handling": 9,
+    Anthropology: 6,
+    Appraise: 8,
+    Archeology: 3,
+    "Art Craft": 15,
+    "Art Craft 2": 14,
+    Artillery: 0,
+    Charm: 20,
+    Climb: 20,
+    "Computer Use": 0,
+    "Credit Rating": 5,
+    "Cthulhu Mythos": 0,
+    Demolitions: 1,
+    Disguise: 5,
+    Dodge: 20,
+    "Drive Auto": 10,
+    Electronics: 1,
+    "Electrical Repair": 15,
+    "Fast Talk": 14,
+    "Fighting Brawl": 30,
+    "Fighting Other": 30,
+    "Firearms Handgun": 30,
+    "Firearms Other": 30,
+    "Firearms Rifle Shotgun": 30,
+    "First Aid": 20,
+    History: 10,
+    Intimidate: 15,
+    Jump: 20,
+    "Language Other 1": 20,
+    "Language Other 2": 0,
+    "Language Other 3": 0,
+    "Language Own": 50,
+    Law: 5,
+    "Library Use": 20,
+    Listen: 30,
+    Locksmith: 10,
+    "Mechanical Repair": 15,
+    Medicine: 4,
+    "Natural World": 15,
+    Navigate: 15,
+    Occult: 4,
+    "Operate Heavy Machinery": 1,
+    Persuade: 15,
+    Pilot: 1,
+    Psychoanalysis: 2,
+    Psychology: 10,
+    "Read Lips": 1,
+    Ride: 10,
+    Science: 10,
+    "Science Other": 21,
+    "Science Other 2": 20,
+    "Sign Language": 0,
+    Deception: 10,
+    "Sleight Of Hand": 10,
+    SPOT: 15,
+    Stealth: 20,
+    Survival: 11,
+    Swim: 22,
+    Throw: 20,
+    Track: 10,
+    "Uncommon Language": 1,
+    Other1: 0,
+    Other2: 0,
+    Other3: 0,
+  };
+
+  const cost = {
+    totalXP: 0,
+    usedXP: 0,
+    remainingXP: 0,
+    APP: 60,
+    BONUS: 150,
+    BRV: 110,
+    CON: 140,
+    AGI: 180,
+    EDU: 50,
+    INT: 65,
+    LUCK: 180,
+    SENSE: 350,
+    SPOT: 250,
+    WILL: 200,
+    STATUS: 200,
+    SAN: 160,
+    SIZ: 120,
+    STR: 120,
+    ARMOR: 15000,
+    RES: 15000,
+    Accounting: 20,
+    "Animal Handling": 90,
+    Anthropology: 20,
+    Appraise: 30,
+    Archeology: 20,
+    "Art Craft": 40,
+    "Art Craft 2": 40,
+    Artillery: 90,
+    Charm: 120,
+    Climb: 70,
+    "Computer Use": 90,
+    "Credit Rating": 130,
+    "Cthulhu Mythos": 2,
+    Demolitions: 90,
+    Disguise: 60,
+    Dodge: 160,
+    "Drive Auto": 90,
+    Electronics: 90,
+    "Electrical Repair": 50,
+    "Fast Talk": 120,
+    "Fighting Brawl": 120,
+    "Fighting Other": 120,
+    "Firearms Handgun": 160,
+    "Firearms Other": 140,
+    "Firearms Rifle Shotgun": 140,
+    "First Aid": 90,
+    History: 60,
+    Hypnosis: 210,
+    Intimidate: 110,
+    Jump: 100,
+    "Language Other 1": 20,
+    "Language Other 2": 20,
+    "Language Other 3": 20,
+    "Language Own": 20,
+    Law: 70,
+    "Library Use": 160,
+    Listen: 160,
+    Locksmith: 110,
+    "Mechanical Repair": 50,
+    Medicine: 50,
+    "Natural World": 80,
+    Navigate: 40,
+    Occult: 140,
+    "Operate Heavy Machinery": 40,
+    Persuade: 170,
+    Pilot: 30,
+    Psychoanalysis: 30,
+    Psychology: 170,
+    "Read Lips": 190,
+    Ride: 90,
+    Science: 50,
+    "Science Other": 50,
+    "Science Other 2": 50,
+    "Sign Language": 20,
+    Deception: 130,
+    "Sleight Of Hand": 120,
+    Stealth: 120,
+    Survival: 30,
+    Swim: 30,
+    Throw: 100,
+    Track: 40,
+    "Uncommon Language": 200,
+    Other1: 50,
+    Other2: 100,
+    Other3: 150,
+  };
+
+  return {
+    base,
+    cost,
+    penaltyRules: {
+      thresholds: [40, 50, 60, 70, 80],
+      multipliers: [1.5, 2, 3, 4, 5],
+    },
+    levelRules: {
+      baseXP: 100000,
+      xpPerLevel: 10000,
+    },
+  };
 }
 
-// Buton yazı rengi: kırmızı ve üzeri için beyaz, altı için siyah
+// Cost değerine göre renk döndürür - Cthulhu teması: Yeşil tonları
+function getCostColor(cost) {
+  // Smooth gradient: Light Green → Green → Teal → Dark Green → Dark Teal → Purple → Dark Purple
+  if (cost < 40) return "#a5d6a7";        // light green (1-39)
+  if (cost < 80) return "#66bb6a";        // green (40-79)
+  if (cost < 120) return "#4caf50";       // medium green (80-119)
+  if (cost < 160) return "#388e3c";       // dark green (120-159)
+  if (cost < 220) return "#2e7d32";       // darker green (160-219)
+  if (cost < 300) return "#26a69a";       // teal (220-299)
+  if (cost < 400) return "#00897b";       // dark teal (300-399)
+  if (cost < 550) return "#00695c";       // darker teal (400-549)
+  if (cost < 750) return "#004d40";       // darkest teal (550-749)
+  if (cost < 1000) return "#1b5e20";      // forest green (750-999)
+  if (cost < 1400) return "#7e57c2";      // purple (1000-1399)
+  if (cost < 2000) return "#673ab7";      // dark purple (1400-1999)
+  if (cost < 3000) return "#5e35b1";      // darker purple (2000-2999)
+  if (cost < 4000) return "#512da8";      // darkest purple (3000-3999)
+  if (cost < 5000) return "#311b92";      // deep purple (4000-4999)
+  return "#1a237e";                       // indigo (5000+)
+}
+
+// Buton yazı rengi: Koyu yeşil tonları ve üzeri için açık, altı için koyu
 function getCostTextColor(cost) {
-  return cost >= 400 ? "#fff" : "#000";
+  return cost >= 300 ? "#e0e7d5" : "#0d1e15";
 }
 
 /**
@@ -263,7 +462,7 @@ function computeUsedXP(rulesSpec, values) {
   let sum = 0;
   
   // Characteristics
-  const characteristics = ["APP", "BONUS", "BRV", "STA", "AGI", "EDU", "INT", "LUCK", "SENSE", "SPOT", "WILL", "STATUS", "SAN", "SIZ", "ARMOR", "RES", "STR"];
+  const characteristics = ["APP", "BONUS", "BRV", "CON", "AGI", "EDU", "INT", "LUCK", "SENSE", "SPOT", "WILL", "SAN", "SIZ", "ARMOR", "RES", "STR"];
   for (const key of characteristics) {
     const v = Number(values[key]) || 0;
     const baseValue = rulesSpec.base[key] ?? 0;
@@ -334,7 +533,7 @@ function applyDerived(rulesSpec, values) {
   const v = (k) => Number(values[k]) || 0;
   const updated = { ...values };
 
-  updated.HP = Math.floor((v("STA") + v("SIZ")) / 10);
+  updated.HP = Math.floor((v("CON") + v("SIZ")) / 10);
   updated.MP = Math.floor(v("WILL") / 5);
 
   const sum = v("SIZ") + v("STR");
@@ -434,6 +633,23 @@ function clampStat(rulesSpec, num, fieldName) {
   return n;
 }
 
+function resolveAvatarSrc(player) {
+  const normalize = (src) => {
+    if (!src) return null;
+    if (typeof src === "string" && src.startsWith("data:")) return src;
+    if (typeof src === "string" && src.length > 100) return `data:image/*;base64,${src}`;
+    if (typeof src === "string") {
+      const publicBase = process.env.PUBLIC_URL || "";
+      if (src.startsWith("http://") || src.startsWith("https://")) return src;
+      if (src.startsWith("/")) return `${publicBase}${src}`;
+      return `${publicBase}/${src}`;
+    }
+    return src;
+  };
+
+  return normalize(player?.avatar) || normalize(player?.avatarLink) || defaultAvatar;
+}
+
 function getInitialForm(rulesSpec, mode, player) {
   if (!rulesSpec) return {};
   
@@ -498,6 +714,7 @@ function getInitialForm(rulesSpec, mode, player) {
       ARMOR: 0,
       RES: 0,
       avatar: "",
+      avatarLink: "",
     };
 
     // Background fields
@@ -525,15 +742,39 @@ function getInitialForm(rulesSpec, mode, player) {
     // Edit modu
     const baseObj = applyDerived(rulesSpec, {
       ...player,
-      // Map backend CON/DEX to frontend STA/AGI for consistency in the UI
-      STA: player?.CON ?? player?.STA ?? 0,
+      // Map backend CON/DEX to frontend CON/AGI for consistency in the UI
+      CON: player?.CON ?? 0,
       AGI: player?.DEX ?? player?.AGI ?? 0,
       SENSE: player?.SENSE ?? player?.PER ?? 0,
-      STATUS: player?.STATUS ?? player?.REP ?? 0,
+      Status: player?.Status ?? player?.STATUS ?? player?.REP ?? 0,
       ARMOR: player?.ARMOR ?? player?.armor ?? 0,
       RES: player?.RES ?? player?.res ?? 0,
       avatar: player?.avatar || "",
+      avatarLink: player?.avatarLink || "",
     });
+
+    // Missing fields: default to rules base values so minimums are visible
+    Object.entries(rulesSpec.base).forEach(([k, v]) => {
+      if (baseObj[k] === undefined) baseObj[k] = v;
+    });
+
+    // Ensure every FIELD_DEFS numeric exists
+    FIELD_DEFS.forEach((def) => {
+      if (def.type === "number" && baseObj[def.key] === undefined) {
+        const backendKey = def.key;
+        baseObj[def.key] = rulesSpec.base[backendKey] ?? 0;
+      }
+    });
+
+    // If player already had XP/level info (e.g., offline sample), keep it
+    if (player?.usedXP !== undefined) {
+      baseObj.usedXP = Number(player.usedXP) || 0;
+      const rem = player.remainingXP !== undefined ? Number(player.remainingXP) : baseObj.totalXP - baseObj.usedXP;
+      baseObj.remainingXP = rem;
+    }
+    if (player?.level !== undefined) {
+      baseObj.level = player.level;
+    }
 
     // Ensure background fields exist even if backend doesn't have them
     BACKGROUND_KEYS.forEach((k) => {
@@ -542,6 +783,29 @@ function getInitialForm(rulesSpec, mode, player) {
 
     return baseObj;
   }
+}
+
+function saveOfflinePlayer(payload, mode, player) {
+  const key = "offlinePlayers";
+  const list = JSON.parse(localStorage.getItem(key) || "[]");
+
+  if (mode === "create" || !player?.id) {
+    const record = { ...payload, id: Date.now() };
+    const next = [...list, record];
+    localStorage.setItem(key, JSON.stringify(next));
+    return record;
+  }
+
+  const next = list.map((p) => (p.id === player.id ? { ...payload, id: player.id } : p));
+  localStorage.setItem(key, JSON.stringify(next));
+  return { ...payload, id: player.id };
+}
+
+function deleteOfflinePlayer(id) {
+  const key = "offlinePlayers";
+  const list = JSON.parse(localStorage.getItem(key) || "[]");
+  const next = list.filter((p) => p.id !== id);
+  localStorage.setItem(key, JSON.stringify(next));
 }
 
 function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, cost, readOnly = false, isSmallStep = false, className = "" }) {
@@ -639,16 +903,20 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
   const [rulesSpec, setRulesSpec] = useState(null);
   const [rulesLoading, setRulesLoading] = useState(true);
   const [rulesError, setRulesError] = useState("");
+  const [offlineMode, setOfflineMode] = useState(false);
   const [form, setForm] = useState(() => getInitialForm(null, mode, player));
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
 
+  const avatarSrc = resolveAvatarSrc(form);
+  const hasAvatar = Boolean(form.avatar || form.avatarLink);
+
   const handleSetAll = (value) => {
     if (!rulesSpec) return;
     const keys = [
-      "APP", "BONUS", "BRV", "STA", "AGI", "EDU", "INT", "LUCK",
-      "SENSE", "SPOT", "WILL", "STATUS", "SAN", "SIZ", "ARMOR", "RES", "STR"
+      "APP", "BONUS", "BRV", "CON", "AGI", "EDU", "INT", "LUCK",
+      "SENSE", "SPOT", "WILL", "SAN", "SIZ", "ARMOR", "RES", "STR"
     ];
     setForm((prev) => {
       const next = { ...prev };
@@ -668,20 +936,53 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
   // Load rules spec from backend on mount
   useEffect(() => {
     const loadRulesSpec = async () => {
+      const fallbackSpec = createFallbackRulesSpec();
       try {
         setRulesLoading(true);
-        const response = await fetch("http://localhost:2999/players/rules");
+        // Try cached rules first (10 min TTL)
+        const cachedRaw = localStorage.getItem(RULES_CACHE_KEY);
+        if (cachedRaw) {
+          try {
+            const cached = JSON.parse(cachedRaw);
+            const isFresh = cached?.timestamp && cached?.spec && (Date.now() - cached.timestamp < RULES_CACHE_TTL_MS);
+            if (isFresh) {
+              console.log("[PlayerForm] Using cached rules spec");
+              setRulesSpec(cached.spec);
+              setOfflineMode(false);
+              setForm(getInitialForm(cached.spec, mode, player));
+              return;
+            }
+          } catch (parseErr) {
+            console.warn("[PlayerForm] Failed to parse cached rules, clearing cache", parseErr);
+            localStorage.removeItem(RULES_CACHE_KEY);
+          }
+        }
+
+        console.log(`[PlayerForm] Backend URL: ${API_BASE_URL}`);
+        const response = await fetch(`${API_BASE_URL}/players/rules`);
+        console.log(`[PlayerForm] Response status: ${response.status}`);
         if (!response.ok) {
-          throw new Error("Rules specification yüklenemedi");
+          throw new Error(`HTTP ${response.status}: Rules specification yüklenemedi`);
         }
         const spec = await response.json();
+        console.log("[PlayerForm] Rules loaded from backend");
+
+        // Cache the fresh rules
+        localStorage.setItem(RULES_CACHE_KEY, JSON.stringify({ timestamp: Date.now(), spec }));
+
         setRulesSpec(spec);
+        setOfflineMode(false);
         
         // Initialize form with loaded spec
         setForm(getInitialForm(spec, mode, player));
       } catch (err) {
-        console.error("Rules yükleme hatası:", err);
-        setRulesError(err.message || "Rules yüklenirken bir hata oluştu");
+        console.error("[PlayerForm] Rules yükleme hatası:", err.message);
+        console.error("[PlayerForm] Full error:", err);
+        localStorage.removeItem(RULES_CACHE_KEY);
+        setOfflineMode(true);
+        setRulesError("Sunucuya ulaşılamadı, varsayılan kurallar kullanılıyor.");
+        setRulesSpec(fallbackSpec);
+        setForm(getInitialForm(fallbackSpec, mode, player));
       } finally {
         setRulesLoading(false);
       }
@@ -718,7 +1019,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
     reader.onloadend = () => {
       const result = reader.result || "";
       const base64 = String(result).split(",")[1] || "";
-      setForm((prev) => ({ ...prev, avatar: base64 }));
+      setForm((prev) => ({ ...prev, avatar: base64, avatarLink: "" }));
     };
     reader.readAsDataURL(file);
   };
@@ -760,11 +1061,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Token bulunamadı. Lütfen tekrar giriş yap.");
-        setIsSubmitting(false);
-        return;
-      }
+      const useBackend = !offlineMode;
 
       const payload = { ...form };
 
@@ -785,12 +1082,19 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
       let response;
 
-      if (mode === "create") {
-        response = await fetch("http://localhost:2999/players", {
+      if (!useBackend) {
+        const saved = saveOfflinePlayer(payload, mode, player);
+        if (mode === "create") {
+          onCreated && onCreated(saved, { stay: stayOnPage });
+        } else {
+          onUpdated && onUpdated(saved, { stay: stayOnPage });
+        }
+      } else if (mode === "create") {
+        response = await fetch(`${API_BASE_URL}/players`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify(payload),
         });
@@ -802,11 +1106,11 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
         const created = await response.json();
         onCreated && onCreated(created, { stay: stayOnPage });
       } else {
-        response = await fetch(`http://localhost:2999/players/${player.id}`, {
+        response = await fetch(`${API_BASE_URL}/players/${player.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify(payload),
         });
@@ -837,16 +1141,17 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Token bulunamadı. Lütfen tekrar giriş yap.");
+      const useBackend = !offlineMode;
+
+      if (!useBackend) {
+        deleteOfflinePlayer(player.id);
+        if (onCancel) onCancel();
         return;
       }
 
-      const response = await fetch(`http://localhost:2999/players/${player.id}`, {
+      const response = await fetch(`${API_BASE_URL}/players/${player.id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       if (!response.ok) {
@@ -865,7 +1170,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
     return (
       <div className="page-wrapper">
         <div className="player-page">
-          <div className="loading-block">
+          <div className="loading-block" style={{ color: "#b8860b", textShadow: "0 0 10px rgba(218, 165, 32, 0.3)" }}>
             <p>{t("playerForm.rulesLoading")}</p>
           </div>
         </div>
@@ -873,25 +1178,37 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
     );
   }
 
-  // Show error if rules failed to load
-  if (rulesError) {
-    return (
-      <div className="page-wrapper">
-        <div className="player-page">
-          <div className="error" style={{ margin: "2rem" }}>
-            <p><strong>{t("playerForm.rulesErrorTitle")}:</strong> {rulesError}</p>
-            <p>{t("playerForm.rulesErrorHint")}</p>
-          </div>
-          <button onClick={onCancel} className="button" style={{ margin: "1rem", background: "#9ca3af" }}>
-            {t("playerForm.back")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="page-wrapper">
+      {isSubmitting && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0, 0, 0, 0.7)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          backdropFilter: "blur(4px)"
+        }}>
+          <div style={{
+            textAlign: "center",
+            color: "white"
+          }}>
+            <div style={{
+              fontSize: "2rem",
+              marginBottom: "1rem"
+            }}>⏳</div>
+            <div style={{
+              fontSize: "1.2rem",
+              fontWeight: "bold"
+            }}>{t("common.saving")}</div>
+          </div>
+        </div>
+      )}
       <div className="main-container">
         <div
           className="sheet-page player-page"
@@ -915,9 +1232,9 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
           <div className="coc-corner corner-tr" aria-hidden="true"></div>
           <div className="coc-corner corner-bl" aria-hidden="true"></div>
           <div className="coc-corner corner-br" aria-hidden="true"></div>
-          {form.avatar && (
+          {hasAvatar && (
             <img
-              src={`data:image/*;base64,${form.avatar}`}
+              src={avatarSrc}
               alt=""
               className="print-bg-image"
               aria-hidden="true"
@@ -927,6 +1244,18 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
           <div className="no-print toolbar-row">
             <LanguageSwitcher variant="compact" />
           </div>
+
+          {offlineMode && (
+            <div className="error" style={{ margin: "0 0 1rem 0", background: "linear-gradient(135deg, #d4d0b8, #c5c1a8)", border: "2px solid #8b7d6b", boxShadow: "0 0 15px rgba(139, 125, 107, 0.2)", color: "#3e3a2f" }}>
+              {t("playerForm.offlineMessage")}
+            </div>
+          )}
+
+          {rulesError && !offlineMode && (
+            <div className="error" style={{ margin: "0 0 1rem 0" }}>
+              <p><strong>{t("playerForm.rulesErrorTitle")}:</strong> {rulesError}</p>
+            </div>
+          )}
           
           <div className="sheet-header header-grid">
             {/* Row 1 */}
@@ -938,7 +1267,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             <div className="avatarCol avatar-col">
               <div className="avatarBox avatar-box" onClick={() => document.getElementById('avatar-upload').click()} title={t("playerForm.uploadImageTooltip")}>
                 <img
-                  src={form.avatar ? `data:image/*;base64,${form.avatar}` : defaultAvatar}
+                  src={avatarSrc}
                   alt={form.name || "avatar"}
                   className="avatar-img"
                 />
@@ -996,7 +1325,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             <StatCell rulesSpec={rulesSpec} label="Luck" value={form.LUCK} base={rulesSpec.base.LUCK} cost={rulesSpec.cost.LUCK} onChange={(v) => handleNumericChange("LUCK", v)} onBlur={() => handleNumericBlur("LUCK")} onDelta={(d) => handleDelta("LUCK", d)} />
 
             <StatCell rulesSpec={rulesSpec} label="Intellect" value={form.INT} base={rulesSpec.base.INT} cost={rulesSpec.cost.INT} onChange={(v) => handleNumericChange("INT", v)} onBlur={() => handleNumericBlur("INT")} onDelta={(d) => handleDelta("INT", d)} />
-            <StatCell rulesSpec={rulesSpec} label="Appeal" value={form.APP} base={rulesSpec.base.APP} cost={rulesSpec.cost.APP} onChange={(v) => handleNumericChange("APP", v)} onBlur={() => handleNumericBlur("APP")} onDelta={(d) => handleDelta("APP", d)} />
+            <StatCell rulesSpec={rulesSpec} label="Appearance" value={form.APP} base={rulesSpec.base.APP} cost={rulesSpec.cost.APP} onChange={(v) => handleNumericChange("APP", v)} onBlur={() => handleNumericBlur("APP")} onDelta={(d) => handleDelta("APP", d)} />
             <StatCell rulesSpec={rulesSpec} label="Bonus" value={form.BONUS} base={rulesSpec.base.BONUS} cost={rulesSpec.cost.BONUS} onChange={(v) => handleNumericChange("BONUS", v)} onBlur={() => handleNumericBlur("BONUS")} onDelta={(d) => handleDelta("BONUS", d)} />
             
             <StatCell rulesSpec={rulesSpec} label="Spot Hidden" value={form.SPOT} base={rulesSpec.base.SPOT} cost={rulesSpec.cost.SPOT} onChange={(v) => handleNumericChange("SPOT", v)} onBlur={() => handleNumericBlur("SPOT")} onDelta={(d) => handleDelta("SPOT", d)} />
@@ -1004,10 +1333,9 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             <StatCell rulesSpec={rulesSpec} label="Sanity" value={form.SAN} base={rulesSpec.base.SAN} cost={rulesSpec.cost.SAN} onChange={(v) => handleNumericChange("SAN", v)} onBlur={() => handleNumericBlur("SAN")} onDelta={(d) => handleDelta("SAN", d)} />
             <ReadSmall label="Build" value={form.Build ?? 0} />
 
-            <StatCell rulesSpec={rulesSpec} label="Status" value={form.STATUS} base={rulesSpec.base.STATUS} cost={rulesSpec.cost.STATUS} onChange={(v) => handleNumericChange("STATUS", v)} onBlur={() => handleNumericBlur("STATUS")} onDelta={(d) => handleDelta("STATUS", d)} />
             <StatCell rulesSpec={rulesSpec} label="Bravery" value={form.BRV} base={rulesSpec.base.BRV} cost={rulesSpec.cost.BRV} onChange={(v) => handleNumericChange("BRV", v)} onBlur={() => handleNumericBlur("BRV")} onDelta={(d) => handleDelta("BRV", d)} />
             <ReadSmall label="Move" value={form.MOVE ?? 8} />
-            <ReadSmall label="Damage Bonus" value={form.damageBonus ?? "0"} />
+            <ReadSmall label="Damage Add" value={form.damageBonus ?? "0"} />
             <StatCell
               rulesSpec={rulesSpec}
               label="Armor"
@@ -1032,7 +1360,6 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               isSmallStep={true}
               className={(Number(form.RES) || 0) === 0 ? "print-hide" : ""}
             />
-            <ReadSmall label="Total XP" value={form.totalXP ?? 0} className="print-hide" />
             <ReadSmall label="Used XP" value={form.usedXP ?? 0} className="print-hide" />
             <ReadSmall label="Level" value={form.level ?? 0} />
           </div>
@@ -1150,6 +1477,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                           type={def.type}
                           name={def.key}
                           value={def.type === "number" && numericValue === 0 ? "" : value}
+                          style={{ textAlign: "center" }}
                           onChange={(e) =>
                             def.type === "number"
                               ? handleNumericChange(def.key, e.target.value)
@@ -1209,7 +1537,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               <button
                 type="button"
                 className="button"
-                style={{ background: "#9ca3af" }}
+                style={{ background: "linear-gradient(135deg, #9a8f7e, #8b7d6b)", border: "2px solid #7a6a56", color: "#f5f3e8" }}
                 onClick={onCancel}
                 disabled={isSubmitting}
               >
@@ -1219,129 +1547,133 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               <button
                 type="submit"
                 className="button"
-                style={{ background: "#fbbf24" }}
+                style={{ background: "linear-gradient(135deg, #daa520, #b8860b)", border: "2px solid #b8860b", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 20px rgba(218, 165, 32, 0.3)", color: "#f5f3e8" }}
                 disabled={isSubmitting}
                 onClick={(e) => handleSubmit(e, false)}
               >
-                {t("playerForm.saveReturn")}
+                {isSubmitting ? "Kaydediliyor..." : t("playerForm.saveReturn")}
               </button>
 
               <button
                 type="button"
                 className="button"
-                style={{ background: "#22c55e" }}
+                style={{ background: "linear-gradient(135deg, #b8860b, #9a7509)", border: "2px solid #9a7509", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 20px rgba(184, 134, 11, 0.3)", color: "#f5f3e8" }}
                 disabled={isSubmitting}
                 onClick={(e) => handleSubmit(e, true)}
               >
-                {t("playerForm.saveStay")}
+                {isSubmitting ? "Kaydediliyor..." : t("playerForm.saveStay")}
               </button>
 
-              {mode === "create" && (
-                <button
-                  type="button"
-                  className="button"
-                  style={{ background: "#0ea5e9" }}
-                  onClick={() => window.print()}
-                >
-                  {t("playerForm.print")}
-                </button>
-              )}
+            
+              <button
+                type="button"
+                className="button no-print"
+                style={{ background: "linear-gradient(135deg, #7a6a56, #6d5d4b)", border: "2px solid #6d5d4b", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(122, 106, 86, 0.2)", color: "#f5f3e8" }}
+                onClick={() => window.print()}
+              >
+                {t("playerForm.print")}
+              </button>
+            
 
               <button
                 type="button"
                 className="button"
-                style={{ background: "#8b5cf6" }}
+                style={{ background: "linear-gradient(135deg, #8b7d6b, #7a6a56)", border: "2px solid #7a6a56", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(122, 106, 86, 0.2)", color: "#f5f3e8" }}
                 onClick={handleExportJSON}
               >
                 {t("playerForm.exportJson")}
               </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#fafafa", color: "#000" }}
-                onClick={() => handleSetAll(10)}
-              >
-                All 10
-              </button>
+              {DEBUGMODE && (
+                <>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #f5f3e8, #e8e4d0)", color: "#5a4a3a", border: "2px solid #d4d0b8" }}
+                    onClick={() => handleSetAll(10)}
+                  >
+                    All 10
+                  </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#f5f5f5", color: "#000" }}
-                onClick={() => handleSetAll(15)}
-              >
-                All 15
-              </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #e8e4d0, #dbdabd)", color: "#5a4a3a", border: "2px solid #c5c1a8" }}
+                    onClick={() => handleSetAll(15)}
+                  >
+                    All 15
+                  </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#eeeeee", color: "#000" }}
-                onClick={() => handleSetAll(20)}
-              >
-                All 20
-              </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #dbdabd, #d4d0b8)", color: "#3e3a2f", border: "2px solid #b8b5a0" }}
+                    onClick={() => handleSetAll(20)}
+                  >
+                    All 20
+                  </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#e0e0e0", color: "#000" }}
-                onClick={() => handleSetAll(25)}
-              >
-                All 25
-              </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #c5c1a8, #b8b5a0)", color: "#3e3a2f", border: "2px solid #a89f8d" }}
+                    onClick={() => handleSetAll(25)}
+                  >
+                    All 25
+                  </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#d1d5db", color: "#000" }}
-                onClick={() => handleSetAll(30)}
-              >
-                All 30
-              </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #a89f8d, #9a8f7e)", color: "#f5f3e8", border: "2px solid #8b7d6b" }}
+                    onClick={() => handleSetAll(30)}
+                  >
+                    All 30
+                  </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#9ca3af", color: "#000" }}
-                onClick={() => handleSetAll(35)}
-              >
-                All 35
-              </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #8b7d6b, #7a6a56)", color: "#f5f3e8", border: "2px solid #6d5d4b" }}
+                    onClick={() => handleSetAll(35)}
+                  >
+                    All 35
+                  </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#6b7280", color: "#fff" }}
-                onClick={() => handleSetAll(40)}
-              >
-                All 40
-              </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #6d5d4b, #5a4a3a)", color: "#f5f3e8", border: "2px solid #4d3f30" }}
+                    onClick={() => handleSetAll(40)}
+                  >
+                    All 40
+                  </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#374151", color: "#fff" }}
-                onClick={() => handleSetAll(45)}
-              >
-                All 45
-              </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #5a4a3a, #4d3f30)", color: "#f5f3e8", border: "2px solid #3e3228" }}
+                    onClick={() => handleSetAll(45)}
+                  >
+                    All 45
+                  </button>
 
-              <button
-                type="button"
-                className="button"
-                style={{ background: "#1f2937", color: "#fff" }}
-                onClick={() => handleSetAll(50)}
-              >
-                All 50
-              </button>
+                  <button
+                    type="button"
+                    className="button"
+                    style={{ background: "linear-gradient(135deg, #4d3f30, #3e3228)", color: "#f5f3e8", border: "2px solid #2f2620" }}
+                    onClick={() => handleSetAll(50)}
+                  >
+                    All 50
+                  </button>
+                </>
+              )}
 
               {mode !== "create" && (
                 <button
                   type="button"
                   className="button"
-                  style={{ background: "#ef4444", color: "#fff" }}
+                  style={{ background: "linear-gradient(135deg, #c45a5a, #a84848)", color: "#fff5f5", border: "2px solid #a84848", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(196, 90, 90, 0.2)" }}
                   onClick={handleDelete}
                   disabled={isSubmitting}
                 >
