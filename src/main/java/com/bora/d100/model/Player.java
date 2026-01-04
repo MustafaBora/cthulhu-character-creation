@@ -27,6 +27,9 @@ public class Player {
     @Column(name = "avatar")
     private String avatar;
 
+    @Column(name = "avatar_link")
+    private String avatarLink;
+
     private String player;
     private String name;
     private String birthPlace;
@@ -358,6 +361,7 @@ public class Player {
 
         // --- Basics (ID + user intentionally excluded) ---
         this.avatar = other.getAvatar();
+        this.avatarLink = other.getAvatarLink();
         this.player = other.getPlayer();
         this.name = other.getName();
         this.birthPlace = other.getBirthPlace();
