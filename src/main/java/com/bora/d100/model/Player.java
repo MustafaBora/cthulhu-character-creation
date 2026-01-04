@@ -27,7 +27,7 @@ public class Player {
     @Column(name = "avatar")
     private String avatar;
 
-    @Column(name = "avatar_link")
+    @Column(name = "avatar_link", length = 512)
     private String avatarLink;
 
     private String player;
