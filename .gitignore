@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 logs/
+/logs/d100.log
 
 ### STS ###
 .apt_generated
