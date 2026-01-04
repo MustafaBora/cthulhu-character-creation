@@ -128,7 +128,7 @@ public class CostServiceByUsage {
         int LUCK = getCostBetween("LUCK", rulesService.getBaseValue("LUCK"), player.getLUCK());
         int SENSE = getCostBetween("SENSE", rulesService.getBaseValue("SENSE"), player.getSENSE());
         int WILL = getCostBetween("WILL", rulesService.getBaseValue("WILL"), player.getWILL());
-        int STATUS = getCostBetween("STATUS", rulesService.getBaseValue("STATUS"), player.getStatus());
+        int STATUS = getCostBetween("Status", rulesService.getBaseValue("STATUS"), player.getStatus());
         int SAN = getCostBetween("SAN", rulesService.getBaseValue("SAN"), player.getSAN());
         int SIZ = getCostBetween("SIZ", rulesService.getBaseValue("SIZ"), player.getSIZ());
         int STR = getCostBetween("STR", rulesService.getBaseValue("STR"), player.getSTR());

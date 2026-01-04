@@ -249,7 +249,7 @@ public class Player {
             case "LUCK": LUCK = value; break;
             case "SENSE": SENSE = value; break;
             case "WILL": WILL = value; break;
-            case "STATUS": Status = value; break;
+            case "Status": Status = value; break;
             case "SAN": SAN = value; break;
             case "SIZ": SIZ = value; break;
             case "STR": STR = value; break;

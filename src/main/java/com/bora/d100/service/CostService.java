@@ -30,7 +30,7 @@ public class CostService {
             Map.entry("LUCK", 35),
             Map.entry("SENSE", 0),
             Map.entry("WILL", 30),
-            Map.entry("STATUS", 1),
+            Map.entry("Status", 1),
             Map.entry("SAN", 45),
             Map.entry("SIZ", 31),
             Map.entry("STR", 25),
@@ -106,7 +106,7 @@ public class CostService {
             Map.entry("LUCK", 3),
             Map.entry("SENSE", 5),
             Map.entry("WILL", 5),
-            Map.entry("STATUS", 14),
+            Map.entry("Status", 14),
             Map.entry("SAN", 3),
             Map.entry("SIZ", 19),
             Map.entry("STR", 11),
@@ -223,7 +223,6 @@ public class CostService {
         int LUCK = getCostFromBase("LUCK", player.getLUCK());
         int SENSE = getCostFromBase("SENSE", player.getSENSE());
         int WILL = getCostFromBase("WILL", player.getWILL());
-        int STATUS = getCostFromBase("STATUS", player.getStatus());
         int SAN = getCostFromBase("SAN", player.getSAN());
         int SIZ = getCostFromBase("SIZ", player.getSIZ());
         int STR = getCostFromBase("STR", player.getSTR());
@@ -287,6 +286,7 @@ public class CostService {
         int Deception = getCostFromBase("Deception", player.getDeception());
         int SleightOfHand = getCostFromBase("Sleight Of Hand", player.getSleightOfHand());
         int SPOT = getCostFromBase("SPOT", player.getSPOT());
+        int STATUS = getCostFromBase("Status", player.getStatus());
         int Stealth = getCostFromBase("Stealth", player.getStealth());
         int Survival = getCostFromBase("Survival", player.getSurvival());
         int Swim = getCostFromBase("Swim", player.getSwim());
