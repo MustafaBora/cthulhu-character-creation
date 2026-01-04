@@ -223,7 +223,7 @@ public class CostService {
         int LUCK = getCostFromBase("LUCK", player.getLUCK());
         int SENSE = getCostFromBase("SENSE", player.getSENSE());
         int WILL = getCostFromBase("WILL", player.getWILL());
-        int STATUS = getCostFromBase("STATUS", player.getSTATUS());
+        int STATUS = getCostFromBase("STATUS", player.getStatus());
         int SAN = getCostFromBase("SAN", player.getSAN());
         int SIZ = getCostFromBase("SIZ", player.getSIZ());
         int STR = getCostFromBase("STR", player.getSTR());
