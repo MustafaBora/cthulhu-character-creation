@@ -507,6 +507,7 @@ function computeUsedXP(rulesSpec, values) {
     "SignLanguage": "Sign Language",
     "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
+    "Status": "STATUS",
     "UncommonLanguage": "Uncommon Language",
     "Other1": "Other1",
     "Other2": "Other2",
@@ -619,6 +620,7 @@ function clampStat(rulesSpec, num, fieldName) {
     "ScienceOther2": "Science Other 2",
     "SleightOfHand": "Sleight Of Hand",
     "Deception": "Deception",
+    "Status": "STATUS",
     "UncommonLanguage": "Uncommon Language"
   };
   
@@ -688,6 +690,7 @@ function getInitialForm(rulesSpec, mode, player) {
     "SignLanguage": "Sign Language",
     "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
+    "Status": "STATUS",
     "UncommonLanguage": "Uncommon Language"
   };
   

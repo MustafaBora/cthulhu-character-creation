@@ -36,7 +36,6 @@ public class CostService {
             Map.entry("STR", 25),
             Map.entry("ARMOR", 0),
             Map.entry("RES", 0),
-
             Map.entry("Accounting", 7),
             Map.entry("Anthropology", 6),
             Map.entry("Appraise", 8),

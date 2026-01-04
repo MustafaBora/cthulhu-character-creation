@@ -128,7 +128,6 @@ public class CostServiceByUsage {
         int LUCK = getCostBetween("LUCK", rulesService.getBaseValue("LUCK"), player.getLUCK());
         int SENSE = getCostBetween("SENSE", rulesService.getBaseValue("SENSE"), player.getSENSE());
         int WILL = getCostBetween("WILL", rulesService.getBaseValue("WILL"), player.getWILL());
-        int STATUS = getCostBetween("Status", rulesService.getBaseValue("STATUS"), player.getStatus());
         int SAN = getCostBetween("SAN", rulesService.getBaseValue("SAN"), player.getSAN());
         int SIZ = getCostBetween("SIZ", rulesService.getBaseValue("SIZ"), player.getSIZ());
         int STR = getCostBetween("STR", rulesService.getBaseValue("STR"), player.getSTR());
@@ -198,6 +197,7 @@ public class CostServiceByUsage {
         int Swim = getCostBetween("Swim", rulesService.getBaseValue("Swim"), player.getSwim());
         int ThrowSkill = getCostBetween("Throw", rulesService.getBaseValue("Throw"), player.getThrow());
         int Track = getCostBetween("Track", rulesService.getBaseValue("Track"), player.getTrack());
+        int Status = getCostBetween("Status", rulesService.getBaseValue("Status"), player.getStatus());
         int Other1 = getCostBetween("Other1", rulesService.getBaseValue("Other1"), player.getOther1());
         int Other2 = getCostBetween("Other2", rulesService.getBaseValue("Other2"), player.getOther2());
         int Other3 = getCostBetween("Other3", rulesService.getBaseValue("Other3"), player.getOther3());
@@ -205,13 +205,13 @@ public class CostServiceByUsage {
 
         // TOPLAM - SPOT is a characteristic, not a skill
         int totalCost =
-                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + SENSE + WILL + STATUS + SAN + SIZ + STR + ARMOR + RES + SPOT +
+                APP + BONUS + BRV + CON + DEX + EDU + INT + LUCK + SENSE + WILL + SAN + SIZ + STR + ARMOR + RES + SPOT +
                     Accounting + AnimalHandling + Anthropology + Appraise + Archeology + ArtCraft + ArtCraft2 + Artillery + Charm + Climb +
                     ComputerUse + CreditRating + CthulhuMythos + Demolitions + Disguise + Dodge + DriveAuto + Electronics + ElectricalRepair + FastTalk +
                         FightingBrawl + FightingOther + FirearmsHandgun + FirearmsOther + FirearmsRifle +
                     FirstAid + History + Hypnosis + Intimidate + Jump + LanguageOther1 + LanguageOther2 + LanguageOther3 +
                     LanguageOwn + Law + LibraryUse + Listen + Locksmith + MechanicalRepair + Medicine +
-                        NaturalWorld + Navigate + Occult + OperateHeavyMachinery + Persuade + Pilot + Psychoanalysis + Psychology + ReadLips + Ride +
+                        NaturalWorld + Navigate + Occult + OperateHeavyMachinery + Persuade + Pilot + Psychoanalysis + Psychology + ReadLips + Ride + Status +
                         Science + ScienceOther + ScienceOther2 + SignLanguage + Deception + SleightOfHand + Stealth + Survival +
                         Swim + ThrowSkill + Track + UncommonLanguage + Other1 + Other2 + Other3;
         
