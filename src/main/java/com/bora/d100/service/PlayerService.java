@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import org.springframework.stereotype.Service;
 
 import com.bora.d100.exception.PlayerNotFoundException;
+import com.bora.d100.exception.PlayerReadonlyException;
 import com.bora.d100.exception.XPCalculationMismatchException;
 import com.bora.d100.mapper.PlayerMapper;
 import com.bora.d100.model.Player;
@@ -71,6 +72,12 @@ public class PlayerService {
         Player existing = playerRepository.findById(id)
                 .orElseThrow(() -> new PlayerNotFoundException(id));
 
+        // Check if player is readonly before attempting update
+        if (existing.isReadonly()) {
+            logger.warning("Attempted to update readonly player with ID: " + id);
+            throw new PlayerReadonlyException(id);
+        }
+
         /*if (!existing.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("You cannot edit someone else's player");
         }*/
@@ -92,6 +99,12 @@ public class PlayerService {
         logger.info("PlayerService.deletePlayer(" + playerId + ")");
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFoundException(playerId));
+
+        // Check if player is readonly before attempting delete
+        if (player.isReadonly()) {
+            logger.warning("Attempted to delete readonly player with ID: " + playerId);
+            throw new PlayerReadonlyException(playerId);
+        }
 
 /*        if (user.getRole() == Role.USER &&
                 !player.getUser().getId().equals(user.getId())) {

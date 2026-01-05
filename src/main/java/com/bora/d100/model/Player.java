@@ -141,6 +141,9 @@ public class Player {
     private int Other2;
     private int Other3;
 
+    @Column(name = "read_only", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean readonly;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
     @JoinColumn(name = "user_id")
@@ -357,6 +360,11 @@ public class Player {
     public void setValuesFromAnother(Player other) {
         if (other == null) {
             throw new IllegalArgumentException("Player to copy from cannot be null");
+        }
+
+        // Check if this player is readonly - prevent bypass attempts
+        if (this.readonly) {
+            throw new IllegalArgumentException("Cannot modify readonly player. This player is protected from updates.");
         }
 
         // --- Basics (ID + user intentionally excluded) ---
