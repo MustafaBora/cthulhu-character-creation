@@ -11,6 +11,7 @@ import cornerBL from "./assets/signs-3.png";
 import cornerBR from "./assets/signs-4.png";
 import LanguageSwitcher from "./LanguageSwitcher";
 import "./PlayerForm.css";
+import { useConnectivity } from "./ConnectivityProvider";
 
 // Debug mode kontrolü - All X butonlarını göstermek için true yapın
 const DEBUGMODE = false;
@@ -22,11 +23,10 @@ const DEBUGMODE = false;
  */
 
 const RULES_CACHE_KEY = "rulesCache";
-const RULES_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 const FIELD_DEFS = [
   { key: "Accounting", label: "Accounting", type: "number" },
-  { key: "AnimalHandling", label: "Animal Handling", type: "number" },
+  { key: "AnimalHandling", label: "Animal Handle", type: "number" },
   { key: "Anthropology", label: "Anthropology", type: "number" },
   { key: "Appraise", label: "Appraise", type: "number" },
   { key: "Archeology", label: "Archeology", type: "number" },
@@ -37,61 +37,169 @@ const FIELD_DEFS = [
   { key: "Climb", label: "Climb", type: "number" },
   { key: "ComputerUse", label: "Computer Use", type: "number" },
   { key: "CreditRating", label: "Credit Rating", type: "number" },
-  { key: "CthulhuMythos", label: "Cthulhu Mythos", type: "number" },
+  { key: "CthulhuMythos", label: "Cthulhu Myths", type: "number" },
   { key: "Demolitions", label: "Demolitions", type: "number" },
   { key: "Disguise", label: "Disguise", type: "number" },
   { key: "Dodge", label: "Dodge", type: "number" },
   { key: "DriveAuto", label: "Drive (Auto)", type: "number" },
   { key: "Electronics", label: "Electronics", type: "number" },
-  { key: "ElectricalRepair", label: "Electrical Repair", type: "number" },
+  { key: "ElectricalRepair", label: "Electrics", type: "number" },
   { key: "FastTalk", label: "Fast Talk", type: "number" },
   { key: "FightingBrawl", label: "Fighting Brawl", type: "number" },
-  { key: "FightingOther", label: "FO (___________)", type: "number" },
+  { key: "FightingOther", label: "FO________", type: "number" },
   { key: "FirearmsHandgun", label: "Handgun", type: "number" },
-  { key: "FirearmsOther", label: "FA-O (___________)", type: "number" },
-  { key: "FirearmsRifleShotgun", label: "Firearms Shotgun", type: "number" },
+  { key: "FirearmsOther", label: "FA-O______", type: "number" },
+  { key: "FirearmsRifleShotgun", label: "FA Rifles", type: "number" },
   { key: "FirstAid", label: "First Aid", type: "number" },
   { key: "History", label: "History", type: "number" },
   { key: "Hypnosis", label: "Hypnosis", type: "number" },
   { key: "Intimidate", label: "Intimidate", type: "number" },
   { key: "Jump", label: "Jump", type: "number" },
-  { key: "LanguageOther1", label: "LO1 (___________)", type: "number" },
-  { key: "LanguageOther2", label: "LO2 (___________)", type: "number" },
-  { key: "LanguageOther3", label: "LO3 (___________)", type: "number" },
+  { key: "LanguageOther1", label: "LO1_______", type: "number" },
+  { key: "LanguageOther2", label: "LO2_______", type: "number" },
+  { key: "LanguageOther3", label: "LO3_______", type: "number" },
   { key: "LanguageOwn", label: "Language", type: "number" },
   { key: "Law", label: "Law", type: "number" },
   { key: "LibraryUse", label: "Library Use", type: "number" },
   { key: "Listen", label: "Listen", type: "number" },
   { key: "Locksmith", label: "Locksmith", type: "number" },
-  { key: "MechanicalRepair", label: "Mechanical Repair", type: "number" },
+  { key: "MechanicalRepair", label: "Mechanics", type: "number" },
   { key: "Medicine", label: "Medicine", type: "number" },
   { key: "NaturalWorld", label: "Natural World", type: "number" },
   { key: "Navigate", label: "Navigate", type: "number" },
   { key: "Occult", label: "Occult", type: "number" },
-  { key: "OperateHeavyMachinery", label: "Operate Heavy Machinery", type: "number" },
+  { key: "OperateHeavyMachinery", label: "Operate Heavy", type: "number" },
   { key: "Persuade", label: "Persuade", type: "number" },
   { key: "Pilot", label: "Pilot", type: "number" },
   { key: "Psychoanalysis", label: "Psychoanalysis", type: "number" },
   { key: "Psychology", label: "Psychology", type: "number" },
   { key: "ReadLips", label: "Read Lips", type: "number" },
   { key: "Ride", label: "Ride", type: "number" },
-  { key: "Science", label: "Science", type: "number" },
-  { key: "ScienceOther", label: "SO (___________)", type: "number" },
-  { key: "ScienceOther2", label: "SO2 (___________)", type: "number" },
+  { key: "Science", label: "Science _____", type: "number" },
+  { key: "ScienceOther", label: "SO _______", type: "number" },
+  { key: "ScienceOther2", label: "SO2 _____", type: "number" },
   { key: "SignLanguage", label: "Sign Language", type: "number" },
   { key: "Deception", label: "Deception", type: "number" },
   { key: "SleightOfHand", label: "Sleight of Hand", type: "number" },
   { key: "Status", label: "Status", type: "number" },
   { key: "Stealth", label: "Stealth", type: "number" },
-  { key: "Survival", label: "Survival", type: "number" },
+  { key: "Survival", label: "Survival ____", type: "number" },
   { key: "Swim", label: "Swim", type: "number" },
   { key: "Throw", label: "Throw", type: "number" },
   { key: "Track", label: "Track", type: "number" },
   { key: "UncommonLanguage", label: "Uncommon Language", type: "number" },
-  { key: "Other1", label: "O1 (___________)", type: "number" },
-  { key: "Other2", label: "O2 (___________)", type: "number" },
-  { key: "Other3", label: "O3 (___________)", type: "number" },
+  { key: "Other1", label: "O1 _______", type: "number" },
+  { key: "Other2", label: "O2 _______", type: "number" },
+  { key: "Other3", label: "O3 _______", type: "number" },
 ];
+
+// Characteristic descriptions for tooltips
+const CHARACTERISTIC_DESCRIPTIONS = {
+  "APP": "Appearance - Physical attractiveness and charm",
+  "BONUS": "Bonus damage from melee weapons based on STR and SIZ",
+  "BRV": "Bravery - Resistance to fear and psychological trauma",
+  "CON": "Constitution - Physical health and stamina",
+  "STA": "Stamina - Physical endurance and toughness",
+  "AGI": "Agility - Speed, reflexes, and coordination",
+  "EDU": "Education - Professional skills and schooling",
+  "INT": "Intelligence - Reasoning and analytical ability",
+  "LUCK": "Luck - Chance and fortune in dangerous situations",
+  "SENSE": "Sense - Intuition and gut feelings",
+  "SPOT": "Spot - Ability to notice details in your surroundings",
+  "WILL": "Willpower - Mental strength and determination",
+  "SAN": "Sanity - Mental health (0 = insane, 99 = perfectly sane)",
+  "SIZ": "Size - Physical bulk and body mass",
+  "ARMOR": "Armor - Protection from damage (0 = none)",
+  "RES": "Resilience - Resistance to magical effects",
+  "STR": "Strength - Physical power and muscular force",
+};
+
+// Map human-readable labels to canonical characteristic keys used in rulesSpec
+const CHARACTERISTIC_LABEL_TO_KEY = {
+  "Strength": "STR",
+  "Size": "SIZ",
+  "Stamina": "STA",
+  "Will": "WILL",
+  "Agility": "AGI",
+  "Education": "EDU",
+  "Luck": "LUCK",
+  "Intellect": "INT",
+  "Appearance": "APP",
+  "Bonus": "BONUS",
+  "Spot Hidden": "SPOT",
+  "Sense": "SENSE",
+  "Sanity": "SAN",
+  "Bravery": "BRV",
+  "Armor": "ARMOR",
+  "Resiliance": "RES", // Note: label spelling preserved in UI
+};
+
+// Skill descriptions for tooltips
+const SKILL_DESCRIPTIONS = {
+  "Accounting": "Managing finances, bookkeeping, and financial analysis",
+  "AnimalHandling": "Training and caring for animals",
+  "Anthropology": "Study of human cultures and societies",
+  "Appraise": "Determining the value of items and objects",
+  "Archeology": "Excavation and study of ancient artifacts",
+  "ArtCraft": "Creating art or crafting items",
+  "ArtCraft2": "Creating art or crafting items (specialized)",
+  "Artillery": "Operating large weapons and cannons",
+  "Charm": "Persuading and influencing others through charisma",
+  "Climb": "Scaling walls and climbing structures",
+  "ComputerUse": "Operating computers and computer systems",
+  "CreditRating": "Determining financial standing and resources",
+  "CthulhuMythos": "Knowledge of ancient eldritch horrors",
+  "Demolitions": "Explosives and controlled destruction",
+  "Disguise": "Changing appearance and looking like someone else",
+  "Dodge": "Avoiding attacks and incoming damage",
+  "DriveAuto": "Operating automobiles",
+  "Electronics": "Repairing and understanding electronics",
+  "ElectricalRepair": "Fixing electrical systems and wiring",
+  "FastTalk": "Deceiving with quick talking and smooth words",
+  "FightingBrawl": "Hand-to-hand combat and brawling",
+  "FightingOther": "Combat with specialized weapons",
+  "FirearmsHandgun": "Using revolvers and pistols",
+  "FirearmsOther": "Using other types of firearms",
+  "FirearmsRifleShotgun": "Using rifles and shotguns",
+  "FirstAid": "Basic medical treatment and wound care",
+  "History": "Knowledge of historical events and periods",
+  "Hypnosis": "Putting others in a hypnotic state",
+  "Intimidate": "Frightening and threatening others",
+  "Jump": "Leaping and long jumping",
+  "LanguageOther1": "Speaking a foreign language",
+  "LanguageOther2": "Speaking another foreign language",
+  "LanguageOther3": "Speaking a third foreign language",
+  "LanguageOwn": "Native language proficiency",
+  "Law": "Legal knowledge and understanding of laws",
+  "LibraryUse": "Researching in libraries and archives",
+  "Listen": "Hearing and detecting sounds",
+  "Locksmith": "Opening locks and disarming traps",
+  "MechanicalRepair": "Fixing mechanical devices and machines",
+  "Medicine": "Diagnosis and treatment of diseases",
+  "NaturalWorld": "Knowledge of nature and wildlife",
+  "Navigate": "Navigation and finding directions",
+  "Occult": "Knowledge of the supernatural and mystical",
+  "OperateHeavyMachinery": "Operating large industrial machines",
+  "Persuade": "Convincing others through logic and reason",
+  "Pilot": "Flying aircraft and helicopters",
+  "Psychoanalysis": "Understanding and analyzing the mind",
+  "Psychology": "Understanding human behavior and motivation",
+  "ReadLips": "Understanding speech by reading lips",
+  "Ride": "Riding horses and other mount animals",
+  "Science": "General scientific knowledge and research",
+  "ScienceOther": "Specialized scientific knowledge",
+  "ScienceOther2": "Another specialized scientific field",
+  "SignLanguage": "Sign language communication",
+  "Deception": "Lying and creating false impressions",
+  "SleightOfHand": "Picking pockets and sleight of hand",
+  "Status": "Social standing and reputation",
+  "Stealth": "Moving quietly and hiding",
+  "Survival": "Surviving in wilderness environments",
+  "Swim": "Swimming and underwater movement",
+  "Throw": "Throwing objects accurately",
+  "Track": "Following tracks and trails",
+  "UncommonLanguage": "Speaking an uncommon or rare language",
+};
 
 // Skills that must always remain visible in print, regardless of value
 const MUST_HAVE_SKILLS = new Set([
@@ -328,30 +436,33 @@ function createFallbackRulesSpec() {
   };
 }
 
-// Cost değerine göre renk döndürür - Cthulhu teması: Yeşil tonları
+// Cost değerine göre renk döndürür - Yeşil → Sarı → Kırmızı → Mor → Siyah
 function getCostColor(cost) {
-  // Smooth gradient: Light Green → Green → Teal → Dark Green → Dark Teal → Purple → Dark Purple
-  if (cost < 40) return "#a5d6a7";        // light green (1-39)
-  if (cost < 80) return "#66bb6a";        // green (40-79)
-  if (cost < 120) return "#4caf50";       // medium green (80-119)
-  if (cost < 160) return "#388e3c";       // dark green (120-159)
-  if (cost < 220) return "#2e7d32";       // darker green (160-219)
-  if (cost < 300) return "#26a69a";       // teal (220-299)
-  if (cost < 400) return "#00897b";       // dark teal (300-399)
-  if (cost < 550) return "#00695c";       // darker teal (400-549)
-  if (cost < 750) return "#004d40";       // darkest teal (550-749)
-  if (cost < 1000) return "#1b5e20";      // forest green (750-999)
-  if (cost < 1400) return "#7e57c2";      // purple (1000-1399)
-  if (cost < 2000) return "#673ab7";      // dark purple (1400-1999)
-  if (cost < 3000) return "#5e35b1";      // darker purple (2000-2999)
-  if (cost < 4000) return "#512da8";      // darkest purple (3000-3999)
-  if (cost < 5000) return "#311b92";      // deep purple (4000-4999)
-  return "#1a237e";                       // indigo (5000+)
+  // Smooth gradient: Light Green → Green → Yellow → Orange → Red → Dark Red → Purple → Black
+  if (cost < 40) return "#c8e6c9";        // very light green (0-39)
+  if (cost < 80) return "#a5d6a7";        // light green (40-79)
+  if (cost < 120) return "#81c784";       // mild green (80-119)
+  if (cost < 160) return "#66bb6a";       // medium green (120-159)
+  if (cost < 220) return "#4caf50";       // decent green (160-219)
+  if (cost < 280) return "#43a047";       // strong green (220-279)
+  if (cost < 420) return "#fbc02d";       // yellow (340-399)
+  if (cost < 560) return "#fb8c00";       // orange (480-559)
+  if (cost < 660) return "#f57c00";       // dark orange (560-659)
+  if (cost < 800) return "#e64a19";       // orange-red (660-799)
+  if (cost < 1300) return "#d32f2f";      // dark red (1000-1299)
+  if (cost < 1700) return "#c62828";      // darker red (1300-1699)
+  if (cost < 2200) return "#ae248a";      // purple (1700-2199)
+  if (cost < 2800) return "#6a1b9a";      // dark purple (2200-2799)
+  if (cost < 3500) return "#4a148c";      // darker purple (2800-3499)
+  if (cost < 5000) return "#2c2c2c";      // very dark gray (3500-4999)
+  return "#0a0a0a";                       // black (5000+)
 }
 
-// Buton yazı rengi: Koyu yeşil tonları ve üzeri için açık, altı için koyu
+// Buton yazı rengi: Sarı durumlarda siyah, koyu kırmızı ve sonrası açık, başta koyu
 function getCostTextColor(cost) {
-  return cost >= 300 ? "#e0e7d5" : "#0d1e15";
+  if (cost >= 280 && cost < 400) return "#1a1a1a";  // sarı durumlarda siyah
+  if (cost >= 400) return "#e0e7d5";                // kırmızı, mor, siyahta açık
+  return "#0d1e15";                                 // yeşil durumlarda koyu
 }
 
 /**
@@ -507,7 +618,7 @@ function computeUsedXP(rulesSpec, values) {
     "SignLanguage": "Sign Language",
     "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
-    "Status": "STATUS",
+    "Status": "Status",
     "UncommonLanguage": "Uncommon Language",
     "Other1": "Other1",
     "Other2": "Other2",
@@ -620,7 +731,7 @@ function clampStat(rulesSpec, num, fieldName) {
     "ScienceOther2": "Science Other 2",
     "SleightOfHand": "Sleight Of Hand",
     "Deception": "Deception",
-    "Status": "STATUS",
+    "Status": "Status",
     "UncommonLanguage": "Uncommon Language"
   };
   
@@ -793,15 +904,21 @@ function saveOfflinePlayer(payload, mode, player) {
   const list = JSON.parse(localStorage.getItem(key) || "[]");
 
   if (mode === "create" || !player?.id) {
-    const record = { ...payload, id: Date.now() };
+    const record = { ...payload, id: Date.now(), _isOfflineCreated: true };
     const next = [...list, record];
     localStorage.setItem(key, JSON.stringify(next));
     return record;
   }
 
-  const next = list.map((p) => (p.id === player.id ? { ...payload, id: player.id } : p));
+  // Preserve _isOfflineCreated flag if it exists
+  const existing = list.find((p) => p.id === player.id);
+  const next = list.map((p) => 
+    p.id === player.id 
+      ? { ...payload, id: player.id, _isOfflineCreated: existing?._isOfflineCreated } 
+      : p
+  );
   localStorage.setItem(key, JSON.stringify(next));
-  return { ...payload, id: player.id };
+  return { ...payload, id: player.id, _isOfflineCreated: existing?._isOfflineCreated };
 }
 
 function deleteOfflinePlayer(id) {
@@ -809,6 +926,68 @@ function deleteOfflinePlayer(id) {
   const list = JSON.parse(localStorage.getItem(key) || "[]");
   const next = list.filter((p) => p.id !== id);
   localStorage.setItem(key, JSON.stringify(next));
+}
+
+// Tooltip component with hover effect
+function Tooltip({ text, children }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  if (!text) return children;
+  
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      {children}
+      <span
+        style={{
+          cursor: "help",
+          marginLeft: "0.25rem",
+          display: "inline-block",
+          color: "#8b7d6b",
+          fontWeight: "bold",
+          fontSize: "0.85rem",
+          verticalAlign: "text-top"
+        }}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        ⓘ
+      </span>
+      {showTooltip && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "100%",
+            left: "0",
+            backgroundColor: "#3e3a2f",
+            color: "#f5f3e8",
+            padding: "0.5rem 0.75rem",
+            borderRadius: "0.35rem",
+            fontSize: "0.8rem",
+            whiteSpace: "nowrap",
+            zIndex: 9999,
+            marginBottom: "0.5rem",
+            border: "1px solid #8b7d6b",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+            pointerEvents: "none",
+          }}
+        >
+          {text}
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: "0.5rem",
+              width: "0",
+              height: "0",
+              borderLeft: "4px solid transparent",
+              borderRight: "4px solid transparent",
+              borderTop: "4px solid #3e3a2f",
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, cost, readOnly = false, isSmallStep = false, className = "" }) {
@@ -824,13 +1003,18 @@ function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, co
   const costNow = getCurrentCostPerPoint(rulesSpec, cost, numericValue);
   const costColor = getCostColor(costNow);
   const stepAmount = isSmallStep ? 1 : 5;
-  const tooltipText = `${costNow * stepAmount} XP`;
   const containerClass = ["cell", "stat-cell", className].filter(Boolean).join(" ");
+  const charKey = CHARACTERISTIC_LABEL_TO_KEY[label] || label;
+  const charDescription = CHARACTERISTIC_DESCRIPTIONS[charKey] || CHARACTERISTIC_DESCRIPTIONS[label];
 
   return (
     <div className={containerClass}>
       <div className="stat-row">
-        <div className="stat-label">{label}</div>
+        <div className="stat-label">
+          <Tooltip text={charDescription}>
+            <span>{label}</span>
+          </Tooltip>
+        </div>
         <div className="label-extra">
           {base !== undefined && <strong className="no-print">{base}</strong>}
           {!readOnly && (costNow || costNow === 0) ? (
@@ -844,7 +1028,6 @@ function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, co
                 type="button"
                 className="step-button"
                 style={{ background: costColor, color: getCostTextColor(costNow) }}
-                title={tooltipText}
                 onClick={() => onDelta(-stepAmount)}
               >
                 -{stepAmount}
@@ -853,7 +1036,6 @@ function StatCell({ rulesSpec, label, value, onChange, onBlur, onDelta, base, co
                 type="button"
                 className="step-button"
                 style={{ background: costColor, color: getCostTextColor(costNow) }}
-                title={tooltipText}
                 onClick={() => onDelta(+stepAmount)}
               >
                 +{stepAmount}
@@ -902,14 +1084,252 @@ function TextCell({ label, value, onChange }) {
   );
 }
 
+// Action buttons component to be reused at top and bottom of the form
+function ActionButtons({ 
+  t, 
+  mode, 
+  isSubmitting, 
+  handleSubmit, 
+  handleDelete, 
+  handleExportJSON, 
+  handleSetAll,
+  onCancel
+}) {
+  return (
+    <div className="button-row" style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", justifyContent: "center" }}>
+      <button
+        type="button"
+        className="button"
+        style={{ background: "linear-gradient(135deg, #9a8f7e, #8b7d6b)", border: "2px solid #7a6a56", color: "#f5f3e8", padding: "0.6rem 1.2rem", fontWeight: "500" }}
+        onClick={onCancel}
+        disabled={isSubmitting}
+      >
+        Ana Sayfa
+      </button>
+      <button
+        type="submit"
+        className="button"
+        style={{ background: "linear-gradient(135deg, #daa520, #b8860b)", border: "2px solid #b8860b", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 20px rgba(218, 165, 32, 0.3)", color: "#f5f3e8", padding: "0.6rem 1.2rem", fontWeight: "500" }}
+        disabled={isSubmitting}
+        onClick={(e) => handleSubmit(e, false)}
+      >
+        {isSubmitting ? "Kaydediliyor..." : t("playerForm.saveReturn")}
+      </button>
+
+      <button
+        type="button"
+        className="button"
+        style={{ background: "linear-gradient(135deg, #b8860b, #9a7509)", border: "2px solid #9a7509", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 20px rgba(184, 134, 11, 0.3)", color: "#f5f3e8", padding: "0.6rem 1.2rem", fontWeight: "500" }}
+        disabled={isSubmitting}
+        onClick={(e) => handleSubmit(e, true)}
+      >
+        {isSubmitting ? "Kaydediliyor..." : t("playerForm.saveStay")}
+      </button>
+
+      <button
+        type="button"
+        className="button no-print"
+        style={{ background: "linear-gradient(135deg, #7a6a56, #6d5d4b)", border: "2px solid #6d5d4b", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(122, 106, 86, 0.2)", color: "#f5f3e8", padding: "0.6rem 1.2rem", fontWeight: "500" }}
+        onClick={() => window.print()}
+      >
+        {t("playerForm.print")}
+      </button>
+
+      <button
+        type="button"
+        className="button"
+        style={{ background: "linear-gradient(135deg, #8b7d6b, #7a6a56)", border: "2px solid #7a6a56", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(122, 106, 86, 0.2)", color: "#f5f3e8", padding: "0.6rem 1.2rem", fontWeight: "500" }}
+        onClick={handleExportJSON}
+      >
+        {t("playerForm.exportJson")}
+      </button>
+
+      {DEBUGMODE && (
+        <>
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #f5f3e8, #e8e4d0)", color: "#5a4a3a", border: "2px solid #d4d0b8" }}
+            onClick={() => handleSetAll(10)}
+          >
+            All 10
+          </button>
+
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #e8e4d0, #dbdabd)", color: "#5a4a3a", border: "2px solid #c5c1a8" }}
+            onClick={() => handleSetAll(15)}
+          >
+            All 15
+          </button>
+
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #dbdabd, #d4d0b8)", color: "#3e3a2f", border: "2px solid #b8b5a0" }}
+            onClick={() => handleSetAll(20)}
+          >
+            All 20
+          </button>
+
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #c5c1a8, #b8b5a0)", color: "#3e3a2f", border: "2px solid #a89f8d" }}
+            onClick={() => handleSetAll(25)}
+          >
+            All 25
+          </button>
+
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #a89f8d, #9a8f7e)", color: "#f5f3e8", border: "2px solid #8b7d6b" }}
+            onClick={() => handleSetAll(30)}
+          >
+            All 30
+          </button>
+
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #8b7d6b, #7a6a56)", color: "#f5f3e8", border: "2px solid #6d5d4b" }}
+            onClick={() => handleSetAll(35)}
+          >
+            All 35
+          </button>
+
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #6d5d4b, #5a4a3a)", color: "#f5f3e8", border: "2px solid #4d3f30" }}
+            onClick={() => handleSetAll(40)}
+          >
+            All 40
+          </button>
+
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #5a4a3a, #4d3f30)", color: "#f5f3e8", border: "2px solid #3e3228" }}
+            onClick={() => handleSetAll(45)}
+          >
+            All 45
+          </button>
+
+          <button
+            type="button"
+            className="button"
+            style={{ background: "linear-gradient(135deg, #4d3f30, #3e3228)", color: "#f5f3e8", border: "2px solid #2f2620" }}
+            onClick={() => handleSetAll(50)}
+          >
+            All 50
+          </button>
+        </>
+      )}
+
+      {mode !== "create" && (
+        <button
+          type="button"
+          className="button"
+          style={{ background: "linear-gradient(135deg, #c45a5a, #a84848)", color: "#fff5f5", border: "2px solid #a84848", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(196, 90, 90, 0.2)", padding: "0.6rem 1.2rem", fontWeight: "500" }}
+          onClick={handleDelete}
+          disabled={isSubmitting}
+        >
+          {t("playerForm.delete")}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Custom Alert Modal Component
+function CustomAlert({ message, onClose }) {
+  if (!message) return null;
+
+  return (
+    <div 
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0, 0, 0, 0.75)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 10000,
+        backdropFilter: "blur(4px)",
+        animation: "fadeIn 0.2s ease-out"
+      }}
+      onClick={onClose}
+    >
+      <div 
+        style={{
+          background: "linear-gradient(135deg, #e8e4d0, #dbdabd)",
+          border: "3px solid #8b7d6b",
+          borderRadius: "12px",
+          padding: "2rem",
+          maxWidth: "450px",
+          minWidth: "300px",
+          boxShadow: "0 10px 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(218, 165, 32, 0.1)",
+          animation: "slideIn 0.3s ease-out",
+          position: "relative"
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{
+          fontSize: "1.1rem",
+          color: "#3e3a2f",
+          marginBottom: "1.5rem",
+          lineHeight: "1.6",
+          fontFamily: "'Georgia', 'Garamond', serif",
+          textAlign: "center"
+        }}>
+          {message}
+        </div>
+        <button
+          onClick={onClose}
+          style={{
+            width: "100%",
+            padding: "0.75rem 1.5rem",
+            background: "linear-gradient(135deg, #daa520, #b8860b)",
+            border: "2px solid #b8860b",
+            borderRadius: "6px",
+            color: "#f5f3e8",
+            fontSize: "1rem",
+            fontWeight: "600",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 20px rgba(218, 165, 32, 0.3)",
+            fontFamily: "'Georgia', 'Garamond', serif"
+          }}
+          onMouseOver={(e) => {
+            e.target.style.transform = "translateY(-2px)";
+            e.target.style.boxShadow = "0 6px 15px rgba(0,0,0,0.4), 0 0 25px rgba(218, 165, 32, 0.4)";
+          }}
+          onMouseOut={(e) => {
+            e.target.style.transform = "translateY(0)";
+            e.target.style.boxShadow = "0 4px 10px rgba(0,0,0,0.3), 0 0 20px rgba(218, 165, 32, 0.3)";
+          }}
+        >
+          Tamam
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpdated }) {
   const [rulesSpec, setRulesSpec] = useState(null);
   const [rulesLoading, setRulesLoading] = useState(true);
-  const [rulesError, setRulesError] = useState("");
-  const [offlineMode, setOfflineMode] = useState(false);
+  const { offlineMode, setOfflineMode, enqueueRequest } = useConnectivity();
   const [form, setForm] = useState(() => getInitialForm(null, mode, player));
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const { t } = useTranslation();
 
   const avatarSrc = resolveAvatarSrc(form);
@@ -936,62 +1356,58 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
     });
   };
 
-  // Load rules spec from backend on mount
-  useEffect(() => {
-    const loadRulesSpec = async () => {
-      const fallbackSpec = createFallbackRulesSpec();
-      try {
-        setRulesLoading(true);
-        // Try cached rules first (10 min TTL)
-        const cachedRaw = localStorage.getItem(RULES_CACHE_KEY);
-        if (cachedRaw) {
-          try {
-            const cached = JSON.parse(cachedRaw);
-            const isFresh = cached?.timestamp && cached?.spec && (Date.now() - cached.timestamp < RULES_CACHE_TTL_MS);
-            if (isFresh) {
-              console.log("[PlayerForm] Using cached rules spec");
-              setRulesSpec(cached.spec);
-              setOfflineMode(false);
-              setForm(getInitialForm(cached.spec, mode, player));
-              return;
-            }
-          } catch (parseErr) {
-            console.warn("[PlayerForm] Failed to parse cached rules, clearing cache", parseErr);
-            localStorage.removeItem(RULES_CACHE_KEY);
-          }
-        }
-
-        console.log(`[PlayerForm] Backend URL: ${API_BASE_URL}`);
-        const response = await fetch(`${API_BASE_URL}/players/rules`);
-        console.log(`[PlayerForm] Response status: ${response.status}`);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: Rules specification yüklenemedi`);
-        }
-        const spec = await response.json();
-        console.log("[PlayerForm] Rules loaded from backend");
-
-        // Cache the fresh rules
-        localStorage.setItem(RULES_CACHE_KEY, JSON.stringify({ timestamp: Date.now(), spec }));
-
-        setRulesSpec(spec);
-        setOfflineMode(false);
-        
-        // Initialize form with loaded spec
-        setForm(getInitialForm(spec, mode, player));
-      } catch (err) {
-        console.error("[PlayerForm] Rules yükleme hatası:", err.message);
-        console.error("[PlayerForm] Full error:", err);
-        localStorage.removeItem(RULES_CACHE_KEY);
-        setOfflineMode(true);
-        setRulesError("Sunucuya ulaşılamadı, varsayılan kurallar kullanılıyor.");
-        setRulesSpec(fallbackSpec);
-        setForm(getInitialForm(fallbackSpec, mode, player));
-      } finally {
-        setRulesLoading(false);
-      }
-    };
+  const queuePlayerRequest = (method, url, payload, token, playerId) => {
+    // If player was offline-created (timestamp ID > 1000000000), always POST to backend
+    const isOfflineCreated = player?._isOfflineCreated || (playerId && playerId > 1000000000);
+    const finalMethod = (method === "PUT" && isOfflineCreated) ? "POST" : method;
+    const finalUrl = (finalMethod === "POST") ? `${API_BASE_URL}/players` : url;
     
-    loadRulesSpec();
+    enqueueRequest({
+      method: finalMethod,
+      url: finalUrl,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: payload ? JSON.stringify(payload) : undefined,
+    });
+  };
+
+  // Load rules spec from localStorage (App.js loads from backend on startup)
+  useEffect(() => {
+    const fallbackSpec = createFallbackRulesSpec();
+    try {
+      setRulesLoading(true);
+      
+      // Try cached rules first
+      const cachedRaw = localStorage.getItem(RULES_CACHE_KEY);
+      if (cachedRaw) {
+        try {
+          const cached = JSON.parse(cachedRaw);
+          if (cached?.spec) {
+            console.log("[PlayerForm] Using rules spec from cache");
+            setRulesSpec(cached.spec);
+            setForm(getInitialForm(cached.spec, mode, player));
+            setRulesLoading(false);
+            return;
+          }
+        } catch (parseErr) {
+          console.warn("[PlayerForm] Failed to parse cached rules", parseErr);
+          localStorage.removeItem(RULES_CACHE_KEY);
+        }
+      }
+
+      // If no cache, use fallback
+      console.log("[PlayerForm] Using fallback rules spec");
+      setRulesSpec(fallbackSpec);
+      setForm(getInitialForm(fallbackSpec, mode, player));
+      setRulesLoading(false);
+    } catch (err) {
+      console.error("[PlayerForm] Rules initialization error:", err.message);
+      setRulesSpec(fallbackSpec);
+      setForm(getInitialForm(fallbackSpec, mode, player));
+      setRulesLoading(false);
+    }
   }, [mode, player]);
 
   const handleNumericChange = (name, rawValue) => {
@@ -1059,6 +1475,13 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
   const handleSubmit = async (e, stayOnPage = false) => {
     e.preventDefault();
+    
+    // Check if player is readonly
+    if (player?.readonly) {
+      setAlertMessage("Bu oyuncu salt okunurdur. Güncelleme yapılamaz.");
+      return;
+    }
+    
     setError("");
     setIsSubmitting(true);
 
@@ -1085,16 +1508,26 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
       let response;
 
+      // Detect offline-created players: they should be POSTed to backend, not PUT
+      const isOfflineCreated = player?._isOfflineCreated || (player?.id && player.id > 1000000000);
+      const shouldPost = mode === "create" || isOfflineCreated;
+      
+      const url = shouldPost
+        ? `${API_BASE_URL}/players`
+        : `${API_BASE_URL}/players/${player.id}`;
+      const method = shouldPost ? "POST" : "PUT";
+
       if (!useBackend) {
         const saved = saveOfflinePlayer(payload, mode, player);
+        queuePlayerRequest(method, url, payload, token, saved.id);
         if (mode === "create") {
           onCreated && onCreated(saved, { stay: stayOnPage });
         } else {
           onUpdated && onUpdated(saved, { stay: stayOnPage });
         }
-      } else if (mode === "create") {
-        response = await fetch(`${API_BASE_URL}/players`, {
-          method: "POST",
+      } else if (shouldPost) {
+        response = await fetch(url, {
+          method,
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -1109,8 +1542,8 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
         const created = await response.json();
         onCreated && onCreated(created, { stay: stayOnPage });
       } else {
-        response = await fetch(`${API_BASE_URL}/players/${player.id}`, {
-          method: "PUT",
+        response = await fetch(url, {
+          method,
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -1131,7 +1564,32 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
       }
     } catch (err) {
       console.error(err);
-      setError(err.message || "Bir hata oluştu.");
+      if (!offlineMode) {
+        // Network failure while online: fall back to offline save + queue
+        try {
+          const token = localStorage.getItem("token");
+          const isOfflineCreated = player?._isOfflineCreated || (player?.id && player.id > 1000000000);
+          const shouldPost = mode === "create" || isOfflineCreated;
+          const url = shouldPost
+            ? `${API_BASE_URL}/players`
+            : `${API_BASE_URL}/players/${player?.id}`;
+          const method = shouldPost ? "POST" : "PUT";
+          const saved = saveOfflinePlayer({ ...form }, mode, player);
+          queuePlayerRequest(method, url, { ...form }, token, saved.id);
+          setOfflineMode(true);
+          setAlertMessage("Offline kaydedildi, bağlantı gelince senkronize edilecek.");
+          if (mode === "create") {
+            onCreated && onCreated(saved, { stay: stayOnPage });
+          } else {
+            onUpdated && onUpdated(saved, { stay: stayOnPage });
+          }
+        } catch (fallbackErr) {
+          console.error("[PlayerForm] Offline fallback failed", fallbackErr);
+          setError(err.message || "Bir hata oluştu.");
+        }
+      } else {
+        setError(err.message || "Bir hata oluştu.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -1139,20 +1597,44 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
   const handleDelete = async () => {
     if (!player || !player.id) return;
+    
+    // Check if player is readonly
+    if (player?.readonly) {
+      setAlertMessage("Bu oyuncu salt okunurdur. Silme işlemi yapılamaz.");
+      return;
+    }
+    
     const confirmed = window.confirm("Bu oyuncuyu silmek istediğinize emin misiniz?");
     if (!confirmed) return;
 
     try {
       const token = localStorage.getItem("token");
       const useBackend = !offlineMode;
+      const isOfflineCreated = player?._isOfflineCreated || (player?.id && player.id > 1000000000);
+      const url = `${API_BASE_URL}/players/${player.id}`;
 
       if (!useBackend) {
+        deleteOfflinePlayer(player.id);
+        // Only queue DELETE if player exists on backend
+        if (!isOfflineCreated) {
+          enqueueRequest({
+            method: "DELETE",
+            url,
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+        }
+        if (onCancel) onCancel();
+        return;
+      }
+
+      // If offline-created, just delete locally (doesn't exist on backend)
+      if (isOfflineCreated) {
         deleteOfflinePlayer(player.id);
         if (onCancel) onCancel();
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/players/${player.id}`, {
+      const response = await fetch(url, {
         method: "DELETE",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -1164,7 +1646,26 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
       if (onCancel) onCancel();
     } catch (err) {
       console.error(err);
-      setError(err.message || "Silme işlemi sırasında hata oluştu.");
+      try {
+        const token = localStorage.getItem("token");
+        const isOfflineCreated = player?._isOfflineCreated || (player?.id && player.id > 1000000000);
+        const url = `${API_BASE_URL}/players/${player.id}`;
+        deleteOfflinePlayer(player.id);
+        // Only queue DELETE if player exists on backend
+        if (!isOfflineCreated) {
+          enqueueRequest({
+            method: "DELETE",
+            url,
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+        }
+        setOfflineMode(true);
+        setAlertMessage("Offline silindi, bağlantı gelince silme kuyruğa alındı.");
+        if (onCancel) onCancel();
+      } catch (fallbackErr) {
+        console.error("[PlayerForm] Offline delete fallback failed", fallbackErr);
+        setError(err.message || "Silme işlemi sırasında hata oluştu.");
+      }
     }
   };
 
@@ -1183,6 +1684,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
   return (
     <div className="page-wrapper">
+      <CustomAlert message={alertMessage} onClose={() => setAlertMessage("")} />
       {isSubmitting && (
         <div style={{
           position: "fixed",
@@ -1253,12 +1755,20 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
               {t("playerForm.offlineMessage")}
             </div>
           )}
-
-          {rulesError && !offlineMode && (
-            <div className="error" style={{ margin: "0 0 1rem 0" }}>
-              <p><strong>{t("playerForm.rulesErrorTitle")}:</strong> {rulesError}</p>
-            </div>
-          )}
+          
+          {/* Action buttons at the top */}
+          <div className="no-print" style={{ marginBottom: "1.5rem" }}>
+            <ActionButtons 
+              t={t}
+              mode={mode}
+              isSubmitting={isSubmitting}
+              handleSubmit={handleSubmit}
+              handleDelete={handleDelete}
+              handleExportJSON={handleExportJSON}
+              handleSetAll={handleSetAll}
+              onCancel={onCancel}
+            />
+          </div>
           
           <div className="sheet-header header-grid">
             {/* Row 1 */}
@@ -1268,7 +1778,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
             {/* Avatar */}
             <div className="avatarCol avatar-col">
-              <div className="avatarBox avatar-box" onClick={() => document.getElementById('avatar-upload').click()} title={t("playerForm.uploadImageTooltip")}>
+              <div className="avatarBox avatar-box" onClick={() => document.getElementById('avatar-upload').click()}>
                 <img
                   src={avatarSrc}
                   alt={form.name || "avatar"}
@@ -1421,8 +1931,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                 const currentCost = getCurrentCostPerPoint(rulesSpec, cost, numericValue);
                 const totalCost = isNumber && cost !== undefined ? getCostBetween(rulesSpec, backendKey, base ?? 0, numericValue) : 0;
                 const costColor = getCostColor(currentCost);
-                const tooltipText = isNumber && cost !== undefined ? `Spent: ${totalCost}` : "";
-                const deltaTooltipText = `${currentCost * 5} XP`;
+                // Removed native titles; show cost via labelExtra
 
                 const labelExtra =
                   isNumber && (cost !== undefined)
@@ -1444,9 +1953,12 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
 
                 return (
                   <div key={def.key} className={containerClass}>
-                    <div className="field-header" title={tooltipText}> 
+                    <div className="field-header"> 
                       <span className="label-text flex-1">
-                        {def.label} <strong className="no-print">{labelWithBase.split(" ").pop()}</strong>
+                          <Tooltip text={SKILL_DESCRIPTIONS[def.key]}>
+                            <span>{def.label}</span>
+                          </Tooltip>
+                          {" "}<strong className="no-print">{labelWithBase.split(" ").pop()}</strong>
                         {labelExtra && (
                           <span className="label-extra no-print" style={{ color: costColor, fontWeight: "bold" }}>{labelExtra}</span>
                         )}
@@ -1459,7 +1971,6 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                               type="button"
                               className="step-button"
                               style={{ background: costColor, color: getCostTextColor(currentCost) }}
-                              title={deltaTooltipText}
                               onClick={() => handleDelta(def.key, -5)}
                             >
                               -5
@@ -1468,7 +1979,6 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                               type="button"
                               className="step-button"
                               style={{ background: costColor, color: getCostTextColor(currentCost) }}
-                              title={deltaTooltipText}
                               onClick={() => handleDelta(def.key, +5)}
                             >
                               +5
@@ -1537,152 +2047,16 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             </div>
 
             <div className="update-buttons no-print buttons-bar">
-              <button
-                type="button"
-                className="button"
-                style={{ background: "linear-gradient(135deg, #9a8f7e, #8b7d6b)", border: "2px solid #7a6a56", color: "#f5f3e8" }}
-                onClick={onCancel}
-                disabled={isSubmitting}
-              >
-                {t("playerForm.back")}
-              </button>
-
-              <button
-                type="submit"
-                className="button"
-                style={{ background: "linear-gradient(135deg, #daa520, #b8860b)", border: "2px solid #b8860b", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 20px rgba(218, 165, 32, 0.3)", color: "#f5f3e8" }}
-                disabled={isSubmitting}
-                onClick={(e) => handleSubmit(e, false)}
-              >
-                {isSubmitting ? "Kaydediliyor..." : t("playerForm.saveReturn")}
-              </button>
-
-              <button
-                type="button"
-                className="button"
-                style={{ background: "linear-gradient(135deg, #b8860b, #9a7509)", border: "2px solid #9a7509", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 20px rgba(184, 134, 11, 0.3)", color: "#f5f3e8" }}
-                disabled={isSubmitting}
-                onClick={(e) => handleSubmit(e, true)}
-              >
-                {isSubmitting ? "Kaydediliyor..." : t("playerForm.saveStay")}
-              </button>
-
-            
-              <button
-                type="button"
-                className="button no-print"
-                style={{ background: "linear-gradient(135deg, #7a6a56, #6d5d4b)", border: "2px solid #6d5d4b", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(122, 106, 86, 0.2)", color: "#f5f3e8" }}
-                onClick={() => window.print()}
-              >
-                {t("playerForm.print")}
-              </button>
-            
-
-              <button
-                type="button"
-                className="button"
-                style={{ background: "linear-gradient(135deg, #8b7d6b, #7a6a56)", border: "2px solid #7a6a56", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(122, 106, 86, 0.2)", color: "#f5f3e8" }}
-                onClick={handleExportJSON}
-              >
-                {t("playerForm.exportJson")}
-              </button>
-
-              {DEBUGMODE && (
-                <>
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #f5f3e8, #e8e4d0)", color: "#5a4a3a", border: "2px solid #d4d0b8" }}
-                    onClick={() => handleSetAll(10)}
-                  >
-                    All 10
-                  </button>
-
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #e8e4d0, #dbdabd)", color: "#5a4a3a", border: "2px solid #c5c1a8" }}
-                    onClick={() => handleSetAll(15)}
-                  >
-                    All 15
-                  </button>
-
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #dbdabd, #d4d0b8)", color: "#3e3a2f", border: "2px solid #b8b5a0" }}
-                    onClick={() => handleSetAll(20)}
-                  >
-                    All 20
-                  </button>
-
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #c5c1a8, #b8b5a0)", color: "#3e3a2f", border: "2px solid #a89f8d" }}
-                    onClick={() => handleSetAll(25)}
-                  >
-                    All 25
-                  </button>
-
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #a89f8d, #9a8f7e)", color: "#f5f3e8", border: "2px solid #8b7d6b" }}
-                    onClick={() => handleSetAll(30)}
-                  >
-                    All 30
-                  </button>
-
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #8b7d6b, #7a6a56)", color: "#f5f3e8", border: "2px solid #6d5d4b" }}
-                    onClick={() => handleSetAll(35)}
-                  >
-                    All 35
-                  </button>
-
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #6d5d4b, #5a4a3a)", color: "#f5f3e8", border: "2px solid #4d3f30" }}
-                    onClick={() => handleSetAll(40)}
-                  >
-                    All 40
-                  </button>
-
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #5a4a3a, #4d3f30)", color: "#f5f3e8", border: "2px solid #3e3228" }}
-                    onClick={() => handleSetAll(45)}
-                  >
-                    All 45
-                  </button>
-
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ background: "linear-gradient(135deg, #4d3f30, #3e3228)", color: "#f5f3e8", border: "2px solid #2f2620" }}
-                    onClick={() => handleSetAll(50)}
-                  >
-                    All 50
-                  </button>
-                </>
-              )}
-
-              {mode !== "create" && (
-                <button
-                  type="button"
-                  className="button"
-                  style={{ background: "linear-gradient(135deg, #c45a5a, #a84848)", color: "#fff5f5", border: "2px solid #a84848", boxShadow: "0 4px 10px rgba(0,0,0,0.3), 0 0 15px rgba(196, 90, 90, 0.2)" }}
-                  onClick={handleDelete}
-                  disabled={isSubmitting}
-                >
-                  {t("playerForm.delete")}
-                </button>
-              )}
+              <ActionButtons 
+                t={t}
+                mode={mode}
+                isSubmitting={isSubmitting}
+                handleSubmit={handleSubmit}
+                handleDelete={handleDelete}
+                handleExportJSON={handleExportJSON}
+                handleSetAll={handleSetAll}
+                onCancel={onCancel}
+              />
             </div>
           </form>
         </div>

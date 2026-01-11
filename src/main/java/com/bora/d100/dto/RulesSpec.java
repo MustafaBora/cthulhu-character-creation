@@ -78,8 +78,8 @@ public class RulesSpec {
      * Supports multiple penalty levels with thresholds and multipliers.
      */
     public static class PenaltyRules {
-        private List<Integer> thresholds;      // [40, 50, 60, 70, 80]
-        private List<Double> multipliers;      // [1.5, 2.0, 3.0, 4.0, 5.0]
+        private List<Integer> thresholds;
+        private List<Double> multipliers;
 
         public PenaltyRules() {
         }
@@ -162,7 +162,6 @@ public class RulesSpec {
          * Calculate the level based on used XP.
          * Level = (usedXP - baseXP) / xpPerLevel
          * Minimum level is always 1.
-         * Example: 100000 XP = lvl 1, 105000 XP = lvl 1, 115000 XP = lvl 1, 125000 XP = lvl 2
          */
         public int calculateLevel(int usedXP) {
             int level = (usedXP - baseXP) / xpPerLevel;

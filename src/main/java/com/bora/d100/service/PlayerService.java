@@ -20,14 +20,12 @@ public class PlayerService {
 
     private final PlayerRepository playerRepository;
     private final PlayerMapper playerMapper;
-    private final CostService costService;
     private final CostServiceByUsage costServiceByUsage;
 
-    public PlayerService(PlayerRepository playerRepository, PlayerMapper playerMapper, CostService costService, CostServiceByUsage costServiceByUsage)
+    public PlayerService(PlayerRepository playerRepository, PlayerMapper playerMapper, CostServiceByUsage costServiceByUsage)
     {
         this.playerRepository = playerRepository;
         this.playerMapper = playerMapper;
-        this.costService = costService;
         this.costServiceByUsage = costServiceByUsage;
     }
 

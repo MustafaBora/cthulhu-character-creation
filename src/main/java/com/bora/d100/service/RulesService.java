@@ -25,7 +25,7 @@ public class RulesService {
      * Initialize the complete rules specification with all characteristics and skills.
      */
     private RulesSpec initializeRulesSpec() {
-        Map<String, Integer> base = Map.<String, Integer>ofEntries(
+        Map<String, Integer> base = Map.ofEntries(
                 Map.entry("totalXP", 200000),
                 Map.entry("usedXP", 0),
                 Map.entry("remainingXP", 0),
@@ -115,7 +115,7 @@ public class RulesService {
                 Map.entry("Other3", 0)
         );
         
-        Map<String, Integer> cost = Map.<String, Integer>ofEntries(
+        Map<String, Integer> cost = Map.ofEntries(
                 Map.entry("totalXP", 0),
                 Map.entry("usedXP", 0),
                 Map.entry("remainingXP", 0),
@@ -208,10 +208,10 @@ public class RulesService {
         );
         
         // Multi-level penalty system: 5 threshold levels
-        // Thresholds: 40, 50, 60, 70, 80
-        // Multipliers: 1.5x, 2x, 3x, 4x, 6x
-        List<Integer> penaltyThresholds = Arrays.asList(40, 50, 60, 70, 80);
-        List<Double> penaltyMultipliers = Arrays.asList(1.5, 2.0, 3.0, 4.0, 5.0);
+        // Thresholds: every 10
+        // Multipliers: 1x, 2x, 3x, 4x, 5x, 6x, 8x, 8x, 9x
+        List<Integer> penaltyThresholds = Arrays.asList(10, 20, 30, 40, 50, 60, 70, 80, 90);
+        List<Double> penaltyMultipliers = Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
         RulesSpec.PenaltyRules penalties = new RulesSpec.PenaltyRules(penaltyThresholds, penaltyMultipliers);
         
         // Level system configuration
