@@ -36,15 +36,28 @@ public class Player {
     private String pronoun;
     private String occupation;
     private String residence;
+
+    private String personalDescription;
+    private String traits;
+    private String ideology;
+    private String beliefs;
     private String bagSurface;
-    private String significantPeople;
-    private String injuriesScarsPhobiesManias;
     private String bagMiddle;
-    private String treasuredPossesions;
-    private String arcaneTomesSpellsArtifacts;
     private String bagDeep;
+    private String significantPeople;
+    private String injuries;
+    private String scars;
+    private String phobies;
+    private String manias;
+    private String treasuredPossesions;
+    private String arcaneTomes;
+    private String spells;
+    private String artifacts;
     private String meaningfulLocations;
     private String encountersWithStrangeEntities;
+    private String inspiration;
+    private String alliesAndOrganisations;
+
     private int age;
     private int totalXP;
 
