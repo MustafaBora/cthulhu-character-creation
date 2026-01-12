@@ -1,14 +1,14 @@
 package com.bora.d100;
 
-import java.util.logging.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class D100Application {
 	
-	private static final Logger logger = Logger.getLogger(D100Application.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(D100Application.class);
 
 	public static void main(String[] args) {
 		logger.info("Starting D100 Application...");

@@ -1,9 +1,9 @@
 package com.bora.d100.security;
 
-
 import java.io.IOException;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.bora.d100.repository.UserRepository;
@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @Component
 public class JwtAuthenticationFilter implements Filter
 {
-    private static final Logger logger = Logger.getLogger(JwtAuthenticationFilter.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;

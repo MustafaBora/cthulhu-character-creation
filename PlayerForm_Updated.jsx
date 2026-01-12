@@ -14,12 +14,12 @@ import "./PlayerForm.css";
 import { useConnectivity } from "./ConnectivityProvider";
 
 // Debug mode kontrolü - All X butonlarını göstermek için true yapın
-const DEBUGMODE = false;
+const DEBUGMODE = true;
 
 /**
  * Updated PlayerForm.jsx to use backend RulesSpec with multi-level penalties
  * Loads rules from GET /api/rules instead of hardcoding them
- * Supports 5 penalty levels: 40(1.5x), 50(2x), 60(3x), 70(4x), 80(6x)
+ * Supports 9 penalty levels: 10(1x), 20(2x), 30(3x), 40(4x), 50(5x), 60(6x), 70(7x), 80(8x), 90(9x)
  */
 
 const RULES_CACHE_KEY = "rulesCache";
@@ -38,6 +38,7 @@ const FIELD_DEFS = [
   { key: "ComputerUse", label: "Computer Use", type: "number" },
   { key: "CreditRating", label: "Credit Rating", type: "number" },
   { key: "CthulhuMythos", label: "Cthulhu Myths", type: "number" },
+  { key: "Deception", label: "Deception", type: "number" },
   { key: "Demolitions", label: "Demolitions", type: "number" },
   { key: "Disguise", label: "Disguise", type: "number" },
   { key: "Dodge", label: "Dodge", type: "number" },
@@ -79,7 +80,6 @@ const FIELD_DEFS = [
   { key: "ScienceOther", label: "SO _______", type: "number" },
   { key: "ScienceOther2", label: "SO2 _____", type: "number" },
   { key: "SignLanguage", label: "Sign Language", type: "number" },
-  { key: "Deception", label: "Deception", type: "number" },
   { key: "SleightOfHand", label: "Sleight of Hand", type: "number" },
   { key: "Status", label: "Status", type: "number" },
   { key: "Stealth", label: "Stealth", type: "number" },
@@ -95,22 +95,21 @@ const FIELD_DEFS = [
 
 // Characteristic descriptions for tooltips
 const CHARACTERISTIC_DESCRIPTIONS = {
-  "APP": "Appearance - Physical attractiveness and charm",
-  "BONUS": "Bonus damage from melee weapons based on STR and SIZ",
-  "BRV": "Bravery - Resistance to fear and psychological trauma",
-  "CON": "Constitution - Physical health and stamina",
-  "STA": "Stamina - Physical endurance and toughness",
-  "AGI": "Agility - Speed, reflexes, and coordination",
+  "APP": "Appearance - Physical attractiveness and charm, effects first impressions",
+  "BONUS": "Consumable, gives decrease for any skills per session",
+  "BRV": "Bravery - Resistance to fear and psychological trauma, tests the character when player decides to face a frightening situation",
+  "STA": "Constitution and Stamina - Physical endurance and toughness, running, drinking contests, resistance against poison or against torture",
+  "AGI": "Agility - Speed, reflexes, and coordination, may give an extra round on fights",
   "EDU": "Education - Professional skills and schooling",
-  "INT": "Intelligence - Reasoning and analytical ability",
-  "LUCK": "Luck - Chance and fortune in dangerous situations",
-  "SENSE": "Sense - Intuition and gut feelings",
+  "INT": "Intelligence - Reasoning and analytical ability, may be used to make an IDEA roll when stuck",
+  "LUCK": "Luck - Chance and fortune",
+  "SENSE": "Sense - Intuition and gut feelings, it is an automatic SPOT roll",
   "SPOT": "Spot - Ability to notice details in your surroundings",
-  "WILL": "Willpower - Mental strength and determination",
+  "WILL": "Willpower - Mental strength and determination, may be used in resisting mental attacks or magical influence",
   "SAN": "Sanity - Mental health (0 = insane, 99 = perfectly sane)",
-  "SIZ": "Size - Physical bulk and body mass",
-  "ARMOR": "Armor - Protection from damage (0 = none)",
-  "RES": "Resilience - Resistance to magical effects",
+  "SIZ": "Size - Physical bulk and body mass, affects hit points (HP)",
+  "ARMOR": "Armor - Protection from damage, minus damage from every attack",
+  "RES": "Resilience - Resistance to magical effects, decreases sanity loss from unknoen encounters",
   "STR": "Strength - Physical power and muscular force",
 };
 
@@ -149,6 +148,7 @@ const SKILL_DESCRIPTIONS = {
   "ComputerUse": "Operating computers and computer systems",
   "CreditRating": "Determining financial standing and resources",
   "CthulhuMythos": "Knowledge of ancient eldritch horrors",
+  "Deception": "Lying and creating false impressions",
   "Demolitions": "Explosives and controlled destruction",
   "Disguise": "Changing appearance and looking like someone else",
   "Dodge": "Avoiding attacks and incoming damage",
@@ -161,7 +161,7 @@ const SKILL_DESCRIPTIONS = {
   "FirearmsHandgun": "Using revolvers and pistols",
   "FirearmsOther": "Using other types of firearms",
   "FirearmsRifleShotgun": "Using rifles and shotguns",
-  "FirstAid": "Basic medical treatment and wound care",
+  "FirstAid": "Basic medical treatment and wound care, 1 HP heal",
   "History": "Knowledge of historical events and periods",
   "Hypnosis": "Putting others in a hypnotic state",
   "Intimidate": "Frightening and threatening others",
@@ -175,7 +175,7 @@ const SKILL_DESCRIPTIONS = {
   "Listen": "Hearing and detecting sounds",
   "Locksmith": "Opening locks and disarming traps",
   "MechanicalRepair": "Fixing mechanical devices and machines",
-  "Medicine": "Diagnosis and treatment of diseases",
+  "Medicine": "Diagnosis and treatment of diseases, takes more time and heals 1d4 HP",
   "NaturalWorld": "Knowledge of nature and wildlife",
   "Navigate": "Navigation and finding directions",
   "Occult": "Knowledge of the supernatural and mystical",
@@ -190,7 +190,6 @@ const SKILL_DESCRIPTIONS = {
   "ScienceOther": "Specialized scientific knowledge",
   "ScienceOther2": "Another specialized scientific field",
   "SignLanguage": "Sign language communication",
-  "Deception": "Lying and creating false impressions",
   "SleightOfHand": "Picking pockets and sleight of hand",
   "Status": "Social standing and reputation",
   "Stealth": "Moving quietly and hiding",
@@ -208,7 +207,7 @@ const MUST_HAVE_SKILLS = new Set([
   "Dodge",
   "LanguageOwn",
   "Listen",
-  "Deception", // fallback if added later
+  "Deception",
   "FastTalk",
   "FirearmsHandgun",
   "FirstAid",
@@ -280,6 +279,7 @@ function createFallbackRulesSpec() {
     "Computer Use": 0,
     "Credit Rating": 5,
     "Cthulhu Mythos": 0,
+    Deception: 10,
     Demolitions: 1,
     Disguise: 5,
     Dodge: 20,
@@ -320,7 +320,6 @@ function createFallbackRulesSpec() {
     "Science Other": 21,
     "Science Other 2": 20,
     "Sign Language": 0,
-    Deception: 10,
     "Sleight Of Hand": 10,
     SPOT: 15,
     Stealth: 20,
@@ -368,6 +367,7 @@ function createFallbackRulesSpec() {
     "Computer Use": 90,
     "Credit Rating": 130,
     "Cthulhu Mythos": 2,
+    Deception: 130,
     Demolitions: 90,
     Disguise: 60,
     Dodge: 160,
@@ -409,7 +409,6 @@ function createFallbackRulesSpec() {
     "Science Other": 50,
     "Science Other 2": 50,
     "Sign Language": 20,
-    Deception: 130,
     "Sleight Of Hand": 120,
     Stealth: 120,
     Survival: 30,
@@ -426,8 +425,8 @@ function createFallbackRulesSpec() {
     base,
     cost,
     penaltyRules: {
-      thresholds: [40, 50, 60, 70, 80],
-      multipliers: [1.5, 2, 3, 4, 5],
+      thresholds: [10, 20, 30, 40, 50, 60, 70, 80, 90],
+      multipliers: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
     },
     levelRules: {
       baseXP: 100000,
@@ -467,7 +466,7 @@ function getCostTextColor(cost) {
 
 /**
  * Belirli bir değerde 1 puan artırmanın maliyeti (multi-level threshold penaltileriyle)
- * Supports 5 penalty levels: 40->1.5x, 50->2x, 60->3x, 70->4x, 80->6x
+ * Supports 9 penalty levels: 10->1x, 20->2x, 30->3x, 40->4x, 50->5x, 60->6x, 70->7x, 80->8x, 90->9x
  */
 function getCurrentCostPerPoint(rulesSpec, costPerPoint, value) {
   if (!rulesSpec || !rulesSpec.penaltyRules) return 0;
@@ -592,6 +591,7 @@ function computeUsedXP(rulesSpec, values) {
     "ComputerUse": "Computer Use",
     "CreditRating": "Credit Rating",
     "CthulhuMythos": "Cthulhu Mythos",
+    "Deception": "Deception",
     "Demolitions": "Demolitions",
     "DriveAuto": "Drive Auto",
     "Electronics": "Electronics",
@@ -616,7 +616,6 @@ function computeUsedXP(rulesSpec, values) {
     "ScienceOther": "Science Other",
     "ScienceOther2": "Science Other 2",
     "SignLanguage": "Sign Language",
-    "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
     "Status": "Status",
     "UncommonLanguage": "Uncommon Language",
@@ -706,6 +705,7 @@ function clampStat(rulesSpec, num, fieldName) {
     "ComputerUse": "Computer Use",
     "CreditRating": "Credit Rating",
     "CthulhuMythos": "Cthulhu Mythos",
+    "Deception": "Deception",
     "Demolitions": "Demolitions",
     "DriveAuto": "Drive Auto",
     "Electronics": "Electronics",
@@ -730,7 +730,6 @@ function clampStat(rulesSpec, num, fieldName) {
     "ScienceOther": "Science Other",
     "ScienceOther2": "Science Other 2",
     "SleightOfHand": "Sleight Of Hand",
-    "Deception": "Deception",
     "Status": "Status",
     "UncommonLanguage": "Uncommon Language"
   };
@@ -775,6 +774,7 @@ function getInitialForm(rulesSpec, mode, player) {
     "ComputerUse": "Computer Use",
     "CreditRating": "Credit Rating",
     "CthulhuMythos": "Cthulhu Mythos",
+    "Deception": "Deception",
     "Demolitions": "Demolitions",
     "DriveAuto": "Drive Auto",
     "Electronics": "Electronics",
@@ -799,7 +799,6 @@ function getInitialForm(rulesSpec, mode, player) {
     "ScienceOther": "Science Other",
     "ScienceOther2": "Science Other 2",
     "SignLanguage": "Sign Language",
-    "Deception": "Deception",
     "SleightOfHand": "Sleight Of Hand",
     "Status": "STATUS",
     "UncommonLanguage": "Uncommon Language"
@@ -1751,7 +1750,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
           </div>
 
           {offlineMode && (
-            <div className="error" style={{ margin: "0 0 1rem 0", background: "linear-gradient(135deg, #d4d0b8, #c5c1a8)", border: "2px solid #8b7d6b", boxShadow: "0 0 15px rgba(139, 125, 107, 0.2)", color: "#3e3a2f" }}>
+            <div className="error print-hide" style={{ margin: "0 0 1rem 0", background: "linear-gradient(135deg, #d4d0b8, #c5c1a8)", border: "2px solid #8b7d6b", boxShadow: "0 0 15px rgba(139, 125, 107, 0.2)", color: "#3e3a2f" }}>
               {t("playerForm.offlineMessage")}
             </div>
           )}
@@ -1888,6 +1887,7 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                   "ComputerUse": "Computer Use",
                   "CreditRating": "Credit Rating",
                   "CthulhuMythos": "Cthulhu Mythos",
+                  "Deception": "Deception",
                   "Demolitions": "Demolitions",
                   "DriveAuto": "Drive Auto",
                   "Electronics": "Electronics",
@@ -1912,7 +1912,6 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
                   "ScienceOther": "Science Other",
                   "ScienceOther2": "Science Other 2",
                   "SignLanguage": "Sign Language",
-                  "Deception": "Deception",
                   "SleightOfHand": "Sleight Of Hand",
                   "UncommonLanguage": "Uncommon Language",
                   "Other1": "Other1",
@@ -2023,6 +2022,18 @@ function PlayerForm({ mode = "create", player = null, onCancel, onCreated, onUpd
             </div>
 
             {error && <div className="error">{error}</div>}
+
+            {/* Notes section */}
+            <div id="notes" className="notes-section">
+              <div className="notes-header">Notes</div>
+              <textarea
+                name="notes"
+                value={form.notes ?? ""}
+                onChange={(e) => handleTextChange("notes", e.target.value)}
+                className="notes-area"
+                placeholder="Add your notes here..."
+              />
+            </div>
 
             {/* Background questions */}
             <div id="background" className="background-section">
