@@ -42,8 +42,8 @@ public class JwtUtils
             if (decoded != null && decoded.length >= 32) {
                 return Keys.hmacShaKeyFor(decoded);
             }
-        } catch (IllegalArgumentException ignored) {
-            // fall back to hash-based key generation
+        } catch (RuntimeException ignored) {
+            // not valid Base64 (e.g. contains '_' or '-'); fall back to hash-based key generation
         }
 
         // Deterministic 256-bit key derived from the provided secret (even if short/plaintext)
