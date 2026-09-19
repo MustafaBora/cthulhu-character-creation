@@ -57,6 +57,7 @@ public class Player {
     private String encountersWithStrangeEntities;
     private String inspiration;
     private String alliesAndOrganisations;
+    private String notes;
 
     private int age;
     private int totalXP;
@@ -389,15 +390,38 @@ public class Player {
         this.pronoun = other.getPronoun();
         this.occupation = other.getOccupation();
         this.residence = other.getResidence();
+        
+        // Character Background & Description
+        this.personalDescription = other.getPersonalDescription();
+        this.traits = other.getTraits();
+        this.ideology = other.getIdeology();
+        this.beliefs = other.getBeliefs();
+        
+        // Inventory
         this.bagSurface = other.getBagSurface();
-        this.significantPeople = other.getSignificantPeople();
-        this.injuriesScarsPhobiesManias = other.getInjuriesScarsPhobiesManias();
         this.bagMiddle = other.getBagMiddle();
-        this.treasuredPossesions = other.getTreasuredPossesions();
-        this.arcaneTomesSpellsArtifacts = other.getArcaneTomesSpellsArtifacts();
         this.bagDeep = other.getBagDeep();
+        
+        // Relationships & History
+        this.significantPeople = other.getSignificantPeople();
+        this.injuries = other.getInjuries();
+        this.scars = other.getScars();
+        this.phobies = other.getPhobies();
+        this.manias = other.getManias();
+        this.treasuredPossesions = other.getTreasuredPossesions();
+        
+        // Mystical Elements
+        this.arcaneTomes = other.getArcaneTomes();
+        this.spells = other.getSpells();
+        this.artifacts = other.getArtifacts();
+        
+        // World Knowledge
         this.meaningfulLocations = other.getMeaningfulLocations();
         this.encountersWithStrangeEntities = other.getEncountersWithStrangeEntities();
+        this.inspiration = other.getInspiration();
+        this.alliesAndOrganisations = other.getAlliesAndOrganisations();
+        this.notes = other.getNotes();
+        
         this.age = other.getAge();
 
         // --- Progress / derived-ish fields ---

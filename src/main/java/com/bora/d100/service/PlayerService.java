@@ -2,9 +2,11 @@ package com.bora.d100.service;
 
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.bora.d100.dto.PlayerDTO;
 import com.bora.d100.exception.PlayerNotFoundException;
 import com.bora.d100.exception.PlayerReadonlyException;
 import com.bora.d100.exception.XPCalculationMismatchException;
@@ -29,43 +31,49 @@ public class PlayerService {
         this.costServiceByUsage = costServiceByUsage;
     }
 
-    public List<Player> getAllPlayers()
+    public List<PlayerDTO> getAllPlayers()
     {
         logger.info("PlayerService.getAllPlayers() - fetching all players from database");
-        List<Player> players = playerRepository.findAll()
+        List<PlayerDTO> players = playerRepository.findAll()
                 .stream()
-                //.map(playerMapper::toResponseDto)
-                .toList();
+                .map(playerMapper::toResponseDto)
+                .collect(Collectors.toList());
         logger.info("Found " + players.size() + " players");
         return players;
     }
 
-    public Player getPlayerById(Long playerId)
+    public PlayerDTO getPlayerById(Long playerId)
     {
         logger.info("PlayerService.getPlayerById(" + playerId + ")");
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new PlayerNotFoundException(playerId));
 
-        return player;//;playerMapper.toResponseDto(player);
+        return playerMapper.toResponseDto(player);
+    }
+
+    public Player getPlayerEntityById(Long playerId)
+    {
+        logger.info("PlayerService.getPlayerEntityById(" + playerId + ")");
+        return playerRepository.findById(playerId)
+                .orElseThrow(() -> new PlayerNotFoundException(playerId));
     }
 
 
 
-    public Player/*ResponseDTO*/ createPlayer(Player/*RequestDTO dto,*/ player, User user) throws XPCalculationMismatchException {
-        logger.info("PlayerService.createPlayer() - creating character: " + player.getName());
-//        Player player = playerMapper.toEntity(dto);
+    public PlayerDTO createPlayer(PlayerDTO dto, User user) throws XPCalculationMismatchException {
+        logger.info("PlayerService.createPlayer() - creating character: " + dto.getName());
+        Player player = playerMapper.toEntity(dto);
         player.setUser(user);
-//        costService.calculateXP(player);
         costServiceByUsage.calculateXP(player);
         player.calculateBuildAndDB();
         player.calculateMPAndHP();
         Player saved = playerRepository.save(player);
         logger.info("Character created successfully with ID: " + saved.getId());
-        return saved; //playerMapper.toResponseDto(saved);
+        return playerMapper.toResponseDto(saved);
     }
 
 
-    public Player updatePlayer(Long id, Player incoming, User user) {
+    public PlayerDTO updatePlayer(Long id, PlayerDTO dto, User user) {
         logger.info("PlayerService.updatePlayer(" + id + ") - updating character");
         Player existing = playerRepository.findById(id)
                 .orElseThrow(() -> new PlayerNotFoundException(id));
@@ -76,20 +84,16 @@ public class PlayerService {
             throw new PlayerReadonlyException(id);
         }
 
-        /*if (!existing.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You cannot edit someone else's player");
-        }*/
-
+        Player incoming = playerMapper.toEntity(dto);
         existing.setValuesFromAnother(incoming);
 
-//        costService.calculateXP(existing);
         costServiceByUsage.calculateXP(existing);
         existing.calculateBuildAndDB();
         existing.calculateMPAndHP();
 
         Player result = playerRepository.save(existing);
         logger.info("Character " + id + " updated successfully");
-        return result;
+        return playerMapper.toResponseDto(result);
     }
 
 

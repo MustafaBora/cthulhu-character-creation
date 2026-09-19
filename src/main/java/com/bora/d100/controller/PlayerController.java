@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bora.d100.dto.PlayerDTO;
 import com.bora.d100.dto.RulesSpec;
 import com.bora.d100.model.Player;
 import com.bora.d100.model.User;
@@ -59,11 +60,10 @@ public class PlayerController
 
     @PostMapping
     public ResponseEntity<?> createPlayer(
-            @Valid @RequestBody Player/*RequestDTO dto*/ player,
+            @Valid @RequestBody PlayerDTO playerDTO,
             @AuthenticationPrincipal User user ) {
-        logger.info("POST /players - creating new player with character name: " + player.getName());
-        //if (user == null)  throw new InvalidTokenException("Missing or invalid token");
-        Player/*ResponseDTO*/ created = playerService.createPlayer(player, user);
+        logger.info("POST /players - creating new player with character name: " + playerDTO.getName());
+        PlayerDTO created = playerService.createPlayer(playerDTO, user);
         logger.info("Player created successfully with ID: " + created.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -71,11 +71,10 @@ public class PlayerController
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePlayer(
             @PathVariable Long id,
-            @Valid @RequestBody Player/*RequestDTO dto*/ player,
+            @Valid @RequestBody PlayerDTO playerDTO,
             @AuthenticationPrincipal User user ) {
         logger.info("PUT /players/" + id + " - updating player");
-        //if (user == null) throw new InvalidTokenException("Missing or invalid token");
-        Player/*ResponseDTO*/ updated = playerService.updatePlayer(id, player, user);
+        PlayerDTO updated = playerService.updatePlayer(id, playerDTO, user);
         logger.info("Player " + id + " updated successfully");
         return ResponseEntity.ok(updated);
     }
@@ -106,8 +105,7 @@ public class PlayerController
 
     @GetMapping("/{id}/sheet.html")
     public ResponseEntity<byte[]> downloadHtmlSheet(@PathVariable Long id) {
-        //bunu kullanacaksan pronoun ve birthplace isimlerinde hata olabilir frontende bak
-        Player p = playerService.getPlayerById(id);
+        Player p = playerService.getPlayerEntityById(id);
 
         byte[] bytes = sheetService.generateCharacterHtml(p);
 
